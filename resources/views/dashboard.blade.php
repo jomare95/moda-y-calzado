@@ -75,33 +75,39 @@
             <canvas id="ventasChart" height="200"></canvas>
         </div>
 
-        <!-- Productos Más Vendidos -->
+        <!-- Gráfico de Gastos -->
         <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Productos Más Vendidos Hoy</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($productosMasVendidosHoy ?? [] as $producto)
-                        <tr>
-                            <td class="px-6 py-4">{{ $producto->nombre }}</td>
-                            <td class="px-6 py-4">{{ $producto->cantidad_vendida }}</td>
-                            <td class="px-6 py-4">${{ number_format($producto->total_vendido, 2) }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">No hay ventas registradas hoy</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Gastos por Compras Últimos 7 Días</h2>
+            <canvas id="gastosChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Productos Más Vendidos -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Productos Más Vendidos Hoy</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @forelse($productosMasVendidosHoy ?? [] as $producto)
+                    <tr>
+                        <td class="px-6 py-4">{{ $producto->nombre }}</td>
+                        <td class="px-6 py-4">{{ $producto->cantidad_vendida }}</td>
+                        <td class="px-6 py-4">${{ number_format($producto->total_vendido, 2) }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">No hay ventas registradas hoy</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -170,8 +176,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('ventasChart').getContext('2d');
-    new Chart(ctx, {
+    // Gráfico de Ventas
+    const ctxVentas = document.getElementById('ventasChart').getContext('2d');
+    new Chart(ctxVentas, {
         type: 'line',
         data: {
             labels: {!! json_encode($ventasChart['labels'] ?? []) !!},
@@ -179,6 +186,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 label: 'Ventas',
                 data: {!! json_encode($ventasChart['data'] ?? []) !!},
                 borderColor: 'rgb(59, 130, 246)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Gastos
+    const ctxGastos = document.getElementById('gastosChart').getContext('2d');
+    new Chart(ctxGastos, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($gastosChart['labels'] ?? []) !!},
+            datasets: [{
+                label: 'Gastos por Compras',
+                data: {!! json_encode($gastosChart['data'] ?? []) !!},
+                borderColor: 'rgb(239, 68, 68)',
                 tension: 0.1
             }]
         },
