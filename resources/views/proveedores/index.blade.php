@@ -21,52 +21,23 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Nombre
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Documento
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Teléfono
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Estado
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Razón Social</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @forelse($proveedores as $proveedor)
+                @foreach($proveedores as $proveedor)
                     <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $proveedor->razon_social }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $proveedor->tipo_documento }} - {{ $proveedor->numero_documento }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $proveedor->telefono }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $proveedor->email }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">
-                                {{ $proveedor->nombre }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">
-                                {{ $proveedor->tipo_documento }}: {{ $proveedor->numero_documento }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">
-                                {{ $proveedor->telefono }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">
-                                {{ $proveedor->email }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ $proveedor->estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $proveedor->estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                 {{ $proveedor->estado ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
@@ -87,13 +58,7 @@
                             </form>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            No hay proveedores registrados
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>

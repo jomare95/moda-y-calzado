@@ -40,19 +40,21 @@
                 @forelse ($compras as $compra)
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $compra->fecha->format('d/m/Y H:i') }}
+                            {{ $compra->fecha_compra ? \Carbon\Carbon::parse($compra->fecha_compra)->format('d/m/Y H:i') : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $compra->numero_factura }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $compra->proveedor->nombre }}
+                            {{ $compra->proveedor->razon_social ?? 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             ${{ number_format($compra->total, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {{ $compra->estado == 'Completada' ? 'bg-green-100 text-green-800' : 
+                                   ($compra->estado == 'Pendiente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
                                 {{ $compra->estado }}
                             </span>
                         </td>

@@ -134,17 +134,10 @@
                                        class="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 p-2 rounded-lg transition-colors duration-150">
                                         <i class="fas fa-edit text-sm"></i>
                                     </a>
-                                    <form action="{{ route('productos.destroy', $producto->id_producto) }}" 
-                                          method="POST" 
-                                          class="inline-block"
-                                          onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="bg-red-100 text-red-700 hover:bg-red-200 p-2 rounded-lg transition-colors duration-150">
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
-                                    </form>
+                                    <button onclick="eliminarProducto({{ $producto->id_producto }})" 
+                                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -164,3 +157,60 @@
     @endif
 </div>
 @endsection 
+
+<script>
+function eliminarProducto(id) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Obtener el token CSRF
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+            
+            // Realizar la petición AJAX
+            fetch(`/productos/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire(
+                        '¡Eliminado!',
+                        data.message,
+                        'success'
+                    ).then(() => {
+                        // Recargar la página
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire(
+                        'Error',
+                        data.message,
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error',
+                    'Hubo un problema al eliminar el producto',
+                    'error'
+                );
+            });
+        }
+    });
+}
+</script> 

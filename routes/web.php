@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Compras
     Route::resource('compras', CompraController::class);
+    Route::get('compras/print/{compra}', [CompraController::class, 'print'])->name('compras.print');
     Route::resource('proveedores', ProveedorController::class);
     
     // Ventas
@@ -46,6 +47,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('productos.toggle-status');
     
     Route::get('/ventas/boleta/{id}', [VentaController::class, 'mostrarBoleta'])->name('ventas.boleta');
+    
+    Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
 });
 
 Route::middleware('guest')->group(function () {

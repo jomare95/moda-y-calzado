@@ -9,9 +9,6 @@ class Proveedor extends Model
     protected $table = 'proveedores';
     protected $primaryKey = 'id_proveedor';
     
-    // Solo tiene created_at, no updated_at
-    const UPDATED_AT = null;
-
     protected $fillable = [
         'razon_social',
         'tipo_documento',
@@ -24,14 +21,9 @@ class Proveedor extends Model
         'estado'
     ];
 
-    protected $casts = [
-        'estado' => 'boolean',
-        'created_at' => 'datetime'
-    ];
-
     // Relación con compras
     public function compras()
     {
-        return $this->hasMany(Compra::class, 'id_proveedor', 'id_proveedor');
+        return $this->hasMany(Compra::class, 'id_proveedor');
     }
 } 

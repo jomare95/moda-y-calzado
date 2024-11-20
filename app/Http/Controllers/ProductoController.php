@@ -47,77 +47,70 @@ class ProductoController extends Controller
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'codigo' => 'required|unique:productos',
-                'nombre' => 'required',
-                'marca_option' => 'required|in:existente,nueva',
-                'id_marca' => 'required_if:marca_option,existente|exists:marcas,id_marca',
-                'marca_nueva' => 'required_if:marca_option,nueva|max:100',
-                'id_categoria' => 'required|exists:categorias,id_categoria',
-                'precio_compra' => 'required|numeric|min:0',
-                'precio_venta' => 'required|numeric|min:0',
-                'stock' => 'required|integer|min:0',
-                'stock_minimo' => 'required|integer|min:0',
-                'colores' => 'required|array|min:1',
-                'colores.*' => 'required|string|max:50',
-                'talles' => 'required|array|min:1',
-                'talles.*' => 'required|string|max:10',
-                'stocks.*' => 'required|integer|min:0'
-            ]);
-
             DB::beginTransaction();
 
-            if ($request->marca_option === 'nueva') {
-                $marca = Marca::create([
-                    'nombre' => $request->marca_nueva,
-                    'estado' => 1
-                ]);
-                $id_marca = $marca->id_marca;
-            } else {
-                $id_marca = $request->id_marca;
+            // Crear el producto principal
+            $producto = new Producto();
+            $producto->codigo = $request->codigo;
+            $producto->nombre = $request->nombre;
+            $producto->id_categoria = $request->id_categoria;
+            $producto->id_marca = $request->id_marca;
+            $producto->descripcion = $request->descripcion;
+            $producto->precio_compra = $request->precio_compra;
+            $producto->precio_venta = $request->precio_venta;
+            $producto->stock = 0; // Se calculará de la suma de producto_talles
+            $producto->stock_minimo = $request->stock_minimo ?? 5;
+            $producto->material = $request->material;
+            $producto->genero = $request->genero;
+            $producto->estado = 1;
+
+            // Manejar la imagen
+            if ($request->hasFile('imagen')) {
+                $imagen = $request->file('imagen');
+                $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
+                $imagen->move(public_path('imagenes/productos'), $nombreImagen);
+                $producto->imagen = $nombreImagen;
             }
 
-            $producto = Producto::create([
-                'codigo' => $request->codigo,
-                'nombre' => $request->nombre,
-                'id_categoria' => $request->id_categoria,
-                'id_marca' => $id_marca,
-                'precio_compra' => $request->precio_compra,
-                'precio_venta' => $request->precio_venta,
-                'stock' => $request->stock,
-                'stock_minimo' => $request->stock_minimo,
-                'estado' => 1
-            ]);
+            $producto->save();
 
-            foreach ($request->colores as $color) {
-                if (!empty($color)) {
-                    DB::table('producto_colores')->insert([
-                        'id_producto' => $producto->id_producto,
-                        'color' => $color
-                    ]);
+            // Guardar colores
+            if ($request->has('colores')) {
+                foreach ($request->colores as $color) {
+                    if (!empty($color)) {
+                        DB::table('producto_colores')->insert([
+                            'id_producto' => $producto->id_producto,
+                            'color' => $color
+                        ]);
+                    }
                 }
             }
 
-            foreach ($request->talles as $index => $talle) {
-                if (!empty($talle)) {
-                    DB::table('producto_talles')->insert([
-                        'id_producto' => $producto->id_producto,
-                        'talla' => $talle,
-                        'stock' => $request->stocks[$index] ?? 0
-                    ]);
+            // Guardar talles y stock
+            if ($request->has('talles')) {
+                $stockTotal = 0;
+                foreach ($request->talles as $key => $talle) {
+                    if (!empty($talle) && isset($request->stocks[$key])) {
+                        $stockTalle = intval($request->stocks[$key]);
+                        DB::table('producto_talles')->insert([
+                            'id_producto' => $producto->id_producto,
+                            'talla' => $talle,
+                            'stock' => $stockTalle
+                        ]);
+                        $stockTotal += $stockTalle;
+                    }
                 }
+                // Actualizar stock total en productos
+                $producto->stock = $stockTotal;
+                $producto->save();
             }
 
             DB::commit();
-            return redirect()->route('productos.index')
-                ->with('success', 'Producto creado correctamente');
+            return response()->json(['success' => true, 'message' => 'Producto guardado correctamente']);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al crear producto: ' . $e->getMessage());
-            return back()
-                ->withInput()
-                ->with('error', 'Error al crear el producto: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 
@@ -225,6 +218,36 @@ class ProductoController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error al mostrar producto: ' . $e->getMessage());
             return back()->with('error', 'Error al mostrar los detalles del producto');
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $producto = Producto::findOrFail($id);
+            
+            // Primero eliminamos los registros relacionados
+            DB::table('detalle_ventas')->where('id_producto', $id)->delete();
+            DB::table('producto_talles')->where('id_producto', $id)->delete();
+            
+            // Finalmente eliminamos el producto
+            $producto->delete();
+            
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto eliminado correctamente'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al eliminar producto: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar el producto: ' . $e->getMessage()
+            ], 500);
         }
     }
 } 

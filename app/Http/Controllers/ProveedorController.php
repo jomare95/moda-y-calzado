@@ -21,17 +21,6 @@ class ProveedorController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'razon_social' => 'required|string|max:100',
-            'tipo_documento' => 'required|in:DNI,CUIT,RUC',
-            'numero_documento' => 'required|string|max:20|unique:proveedores',
-            'direccion' => 'nullable|string|max:255',
-            'telefono' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-            'contacto_nombre' => 'nullable|string|max:100',
-            'contacto_telefono' => 'nullable|string|max:20'
-        ]);
-
         try {
             DB::beginTransaction();
 
@@ -45,16 +34,15 @@ class ProveedorController extends Controller
             $proveedor->contacto_nombre = $request->contacto_nombre;
             $proveedor->contacto_telefono = $request->contacto_telefono;
             $proveedor->estado = 1;
+            
             $proveedor->save();
 
             DB::commit();
-            return redirect()->route('proveedores.index')
-                ->with('success', 'Proveedor registrado correctamente');
+            return response()->json(['success' => true, 'message' => 'Proveedor guardado correctamente']);
 
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->withInput()
-                ->with('error', 'Error al registrar el proveedor: ' . $e->getMessage());
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 

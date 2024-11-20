@@ -6,11 +6,15 @@ class Compra extends Model
 {
     protected $table = 'compras';
     protected $primaryKey = 'id_compra';
+    const UPDATED_AT = null;
     
     protected $fillable = [
         'id_proveedor',
         'numero_comprobante',
         'fecha_compra',
+        'tipo_comprobante',
+        'subtotal',
+        'iva',
         'total',
         'estado',
         'notas'

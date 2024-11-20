@@ -9,16 +9,18 @@ class DetalleCompra extends Model
     protected $table = 'detalle_compras';
     protected $primaryKey = 'id_detalle_compra';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'id_compra',
         'id_producto',
         'cantidad',
-        'precio_compra',
+        'precio_unitario',
         'subtotal'
     ];
 
     protected $casts = [
-        'precio_compra' => 'decimal:2',
+        'precio_unitario' => 'decimal:2',
         'subtotal' => 'decimal:2'
     ];
 

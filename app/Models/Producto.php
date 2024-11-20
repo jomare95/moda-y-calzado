@@ -18,6 +18,11 @@ class Producto extends Model
         'precio_venta',
         'stock',
         'stock_minimo',
+        'talla',
+        'color',
+        'material',
+        'genero',
+        'imagen',
         'estado'
     ];
 

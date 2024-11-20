@@ -10,7 +10,7 @@
             </a>
         </div>
 
-        <form action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form id="form-producto" method="POST" action="{{ route('productos.store') }}" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
             @if ($errors->any())
@@ -59,12 +59,34 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo *</label>
-                        <select name="tipo" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required>
-                            <option value="">Seleccionar Tipo</option>
-                            <option value="Ropa">Ropa</option>
-                            <option value="Calzado">Calzado</option>
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Marca *</label>
+                        <div class="flex space-x-4 mb-2">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="marca_option" value="existente" checked 
+                                       onclick="toggleMarcaInputs('existente')" class="form-radio">
+                                <span class="ml-2">Marca Existente</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="marca_option" value="nueva" 
+                                       onclick="toggleMarcaInputs('nueva')" class="form-radio">
+                                <span class="ml-2">Nueva Marca</span>
+                            </label>
+                        </div>
+
+                        <div id="marca_existente_div">
+                            <select name="id_marca" id="id_marca" class="w-full rounded-md border-gray-300">
+                                <option value="">Seleccionar Marca</option>
+                                @foreach($marcas as $marca)
+                                    <option value="{{ $marca->id_marca }}">{{ $marca->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div id="marca_nueva_div" class="hidden">
+                            <input type="text" name="marca_nueva" id="marca_nueva" 
+                                   class="w-full rounded-md border-gray-300"
+                                   placeholder="Nombre de la nueva marca">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -84,141 +106,66 @@
                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">{{ old('descripcion') }}</textarea>
             </div>
 
-            <!-- Proveedor -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Proveedor
-                </label>
-                <select name="id_proveedor" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
-                    <option value="">Seleccione un proveedor</option>
-                    @foreach($proveedores as $proveedor)
-                        <option value="{{ $proveedor->id_proveedor }}" {{ old('id_proveedor') == $proveedor->id_proveedor ? 'selected' : '' }}>
-                            {{ $proveedor->razon_social }} - {{ $proveedor->numero_documento }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('id_proveedor')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Select de Marca -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Marca
-                </label>
-                <div class="space-y-2">
-                    <!-- Radio buttons para elegir entre marca existente o nueva -->
-                    <div class="flex space-x-4">
-                        <label class="inline-flex items-center">
-                            <input type="radio" 
-                                   name="marca_option" 
-                                   value="existente" 
-                                   class="form-radio"
-                                   checked
-                                   onclick="toggleMarcaInputs('existente')">
-                            <span class="ml-2">Marca Existente</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" 
-                                   name="marca_option" 
-                                   value="nueva" 
-                                   class="form-radio"
-                                   onclick="toggleMarcaInputs('nueva')">
-                            <span class="ml-2">Nueva Marca</span>
-                        </label>
-                    </div>
-
-                    <!-- Select para marcas existentes -->
-                    <div id="marca_existente_div">
-                        <select name="id_marca" 
-                                id="id_marca"
-                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Seleccione una marca</option>
-                            @foreach($marcas as $marca)
-                                <option value="{{ $marca->id_marca }}" {{ old('id_marca') == $marca->id_marca ? 'selected' : '' }}>
-                                    {{ $marca->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Input para nueva marca -->
-                    <div id="marca_nueva_div" class="hidden">
-                        <input type="text" 
-                               name="marca_nueva" 
-                               id="marca_nueva"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                               placeholder="Ingrese el nombre de la nueva marca">
-                    </div>
-                </div>
-                @error('id_marca')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-                @error('marca_nueva')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Agregar después de los campos existentes -->
+            <!-- Precios -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Colores Múltiples -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Colores Disponibles
-                    </label>
-                    <div class="space-y-2">
-                        <div id="colores-container">
-                            <div class="flex space-x-2 mb-2">
-                                <input type="text" 
-                                       name="colores[]" 
-                                       class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                       placeholder="Ingrese un color">
-                                <button type="button" 
-                                        onclick="agregarColor()"
-                                        class="bg-blue-500 text-white px-3 py-1 rounded-lg">
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    @error('colores.*')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Precio de Compra *</label>
+                    <input type="number" 
+                           name="precio_compra" 
+                           step="0.01" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                           required>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Precio de Venta *</label>
+                    <input type="number" 
+                           name="precio_venta" 
+                           step="0.01" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                           required>
+                </div>
+            </div>
 
-                <!-- Talles con Stock -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Talles y Stock
-                    </label>
-                    <div class="space-y-2">
-                        <div id="talles-container">
-                            <div class="flex space-x-2 mb-2">
-                                <input type="text" 
-                                       name="talles[]" 
-                                       class="w-1/2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                       placeholder="Talle">
-                                <input type="number" 
-                                       name="stocks[]" 
-                                       class="w-1/2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                       placeholder="Stock">
-                                <button type="button" 
-                                        onclick="agregarTalle()"
-                                        class="bg-blue-500 text-white px-3 py-1 rounded-lg">
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    @error('talles.*')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                    @error('stocks.*')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+            <!-- Género -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Género *</label>
+                <select name="genero" 
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        required>
+                    <option value="">Seleccionar Género</option>
+                    <option value="Hombre">Hombre</option>
+                    <option value="Mujer">Mujer</option>
+                    <option value="Unisex">Unisex</option>
+                    <option value="Niño">Niño</option>
+                    <option value="Niña">Niña</option>
+                </select>
+            </div>
+
+            <!-- Material -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Material</label>
+                <input type="text" 
+                       name="material" 
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+            </div>
+
+            <!-- Talla Principal -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Talla Principal *</label>
+                <input type="text" 
+                       name="talla" 
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                       required>
+            </div>
+
+            <!-- Sección de Colores -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Colores y Talles</label>
+                <button type="button" onclick="agregarColorTalle()" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded-lg mb-2">
+                    Agregar Color y Talle
+                </button>
+                <div id="colores-talles-container"></div>
             </div>
 
             <!-- Botones -->
@@ -238,74 +185,117 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Calcular precio de venta automáticamente (30% de ganancia)
-    const precioCompra = document.querySelector('[name="precio_compra"]');
-    const precioVenta = document.querySelector('[name="precio_venta"]');
+function agregarColorTalle() {
+    const container = document.getElementById('colores-talles-container');
+    const div = document.createElement('div');
+    div.className = 'flex space-x-2 mb-2';
     
-    precioCompra.addEventListener('input', function() {
-        const compra = parseFloat(this.value) || 0;
-        const ganancia = compra * 0.30; // 30% de ganancia
-        precioVenta.value = (compra + ganancia).toFixed(2);
-    });
-});
+    div.innerHTML = `
+        <div class="w-1/4">
+            <input type="text" 
+                   name="colores[]" 
+                   class="w-full rounded-md border-gray-300 shadow-sm" 
+                   placeholder="Color" 
+                   required>
+        </div>
+        <div class="w-1/4">
+            <input type="text" 
+                   name="talles[]" 
+                   class="w-full rounded-md border-gray-300 shadow-sm" 
+                   placeholder="Talle" 
+                   required>
+        </div>
+        <div class="w-1/4">
+            <input type="number" 
+                   name="stocks[]" 
+                   class="w-full rounded-md border-gray-300 shadow-sm" 
+                   placeholder="Stock" 
+                   min="0" 
+                   required>
+        </div>
+        <div class="w-1/4">
+            <button type="button" 
+                    onclick="this.closest('div').parentElement.remove()" 
+                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(div);
+}
 
-function toggleMarcaInputs(option) {
-    const existenteDiv = document.getElementById('marca_existente_div');
-    const nuevaDiv = document.getElementById('marca_nueva_div');
-    const marcaSelect = document.getElementById('id_marca');
-    const marcaNuevaInput = document.getElementById('marca_nueva');
-
-    if (option === 'existente') {
-        existenteDiv.classList.remove('hidden');
-        nuevaDiv.classList.add('hidden');
-        marcaNuevaInput.value = '';
-    } else {
-        existenteDiv.classList.add('hidden');
-        nuevaDiv.classList.remove('hidden');
-        marcaSelect.value = '';
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-producto');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // Asegurarse de que los arrays estén sincronizados
+            const colores = [];
+            const talles = [];
+            const stocks = [];
+            
+            document.querySelectorAll('#colores-talles-container > div').forEach(div => {
+                const color = div.querySelector('input[name="colores[]"]').value;
+                const talle = div.querySelector('input[name="talles[]"]').value;
+                const stock = div.querySelector('input[name="stocks[]"]').value;
+                
+                if (color && talle && stock) {
+                    colores.push(color);
+                    talles.push(talle);
+                    stocks.push(stock);
+                }
+            });
+            
+            formData.delete('colores[]');
+            formData.delete('talles[]');
+            formData.delete('stocks[]');
+            
+            colores.forEach(color => formData.append('colores[]', color));
+            talles.forEach(talle => formData.append('talles[]', talle));
+            stocks.forEach(stock => formData.append('stocks[]', stock));
+            
+            fetch('{{ route('productos.store') }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: data.message
+                    }).then(() => {
+                        window.location.href = '{{ route('productos.index') }}';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Hubo un problema al guardar el producto'
+                });
+            });
+        });
     }
-}
-
-function agregarColor() {
-    const container = document.getElementById('colores-container');
-    const div = document.createElement('div');
-    div.className = 'flex space-x-2 mb-2';
-    div.innerHTML = `
-        <input type="text" 
-               name="colores[]" 
-               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-               placeholder="Ingrese un color">
-        <button type="button" 
-                onclick="this.parentElement.remove()"
-                class="bg-red-500 text-white px-3 py-1 rounded-lg">
-            -
-        </button>
-    `;
-    container.appendChild(div);
-}
-
-function agregarTalle() {
-    const container = document.getElementById('talles-container');
-    const div = document.createElement('div');
-    div.className = 'flex space-x-2 mb-2';
-    div.innerHTML = `
-        <input type="text" 
-               name="talles[]" 
-               class="w-1/2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-               placeholder="Talle">
-        <input type="number" 
-               name="stocks[]" 
-               class="w-1/2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-               placeholder="Stock">
-        <button type="button" 
-                onclick="this.parentElement.remove()"
-                class="bg-red-500 text-white px-3 py-1 rounded-lg">
-            -
-        </button>
-    `;
-    container.appendChild(div);
-}
+});
 </script>
 @endpush
 @endsection 
