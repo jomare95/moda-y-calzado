@@ -5,64 +5,95 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-gray-800">
-                        {{ config('app.name', 'Laravel') }}
+                        Moda y Calzado
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <!-- Dashboard -->
+                    <!-- Inicio -->
                     <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 border-b-2 text-base font-medium leading-5 focus:outline-none transition duration-150 ease-in-out {{ request()->routeIs('dashboard') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                        Dashboard
+                        <i class="fas fa-home mr-2"></i>
+                        Inicio
                     </a>
 
                     <!-- Productos -->
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 border-transparent text-base font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+                        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 text-base font-medium leading-5 focus:outline-none transition duration-150 ease-in-out {{ request()->routeIs('productos.*') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <i class="fas fa-box mr-2"></i>
                             Productos
-                            <svg class="ml-2 -mr-0.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </button>
                         <div x-show="open" class="absolute z-50 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                             <div class="py-1">
-                                <a href="{{ route('productos.index') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Listado de Productos</a>
-                                <a href="{{ route('productos.create') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Nuevo Producto</a>
-                                <a href="{{ route('categorias.index') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Categorías</a>
+                                <a href="{{ route('productos.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                                    <i class="fas fa-list mr-3 text-gray-400 group-hover:text-indigo-500"></i>
+                                    Listado de Productos
+                                </a>
+                                <a href="{{ route('productos.create') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                                    <i class="fas fa-plus-circle mr-3 text-gray-400 group-hover:text-indigo-500"></i>
+                                    Nuevo Producto
+                                </a>
+                                <a href="{{ route('categorias.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                                    <i class="fas fa-tags mr-3 text-gray-400 group-hover:text-indigo-500"></i>
+                                    Categorías
+                                </a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Compras -->
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 border-transparent text-base font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+                        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 text-base font-medium leading-5 focus:outline-none transition duration-150 ease-in-out {{ request()->routeIs('compras.*') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <i class="fas fa-shopping-bag mr-2"></i>
                             Compras
-                            <svg class="ml-2 -mr-0.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </button>
                         <div x-show="open" class="absolute z-50 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                             <div class="py-1">
-                                <a href="{{ route('compras.create') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Nueva Compra</a>
-                                <a href="{{ route('compras.index') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Listado de Compras</a>
-                                <a href="{{ route('proveedores.index') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Proveedores</a>
+                                <a href="{{ route('compras.create') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700">
+                                    <i class="fas fa-plus-circle mr-3 text-gray-400 group-hover:text-green-500"></i>
+                                    Nueva Compra
+                                </a>
+                                <a href="{{ route('compras.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700">
+                                    <i class="fas fa-list mr-3 text-gray-400 group-hover:text-green-500"></i>
+                                    Listado de Compras
+                                </a>
+                                <a href="{{ route('proveedores.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700">
+                                    <i class="fas fa-truck mr-3 text-gray-400 group-hover:text-green-500"></i>
+                                    Proveedores
+                                </a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Ventas -->
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 border-transparent text-base font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+                        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 text-base font-medium leading-5 focus:outline-none transition duration-150 ease-in-out {{ request()->routeIs('ventas.*') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <i class="fas fa-cash-register mr-2"></i>
                             Ventas
-                            <svg class="ml-2 -mr-0.5 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </button>
                         <div x-show="open" class="absolute z-50 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                             <div class="py-1">
-                                <a href="{{ route('ventas.create') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Nueva Venta</a>
-                                <a href="{{ route('ventas.index') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Listado de Ventas</a>
-                                <a href="{{ route('clientes.index') }}" class="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100">Clientes</a>
+                                <a href="{{ route('ventas.create') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                    <i class="fas fa-plus-circle mr-3 text-gray-400 group-hover:text-blue-500"></i>
+                                    Nueva Venta
+                                </a>
+                                <a href="{{ route('ventas.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                    <i class="fas fa-list mr-3 text-gray-400 group-hover:text-blue-500"></i>
+                                    Listado de Ventas
+                                </a>
+                                <a href="{{ route('clientes.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                    <i class="fas fa-users mr-3 text-gray-400 group-hover:text-blue-500"></i>
+                                    Clientes
+                                </a>
                             </div>
                         </div>
                     </div>

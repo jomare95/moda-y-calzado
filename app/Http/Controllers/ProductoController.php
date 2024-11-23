@@ -9,6 +9,7 @@ use App\Models\Categoria;
 use App\Models\Marca;
 use Illuminate\Support\Facades\DB;
 use App\Models\Proveedor;
+use Illuminate\Validation\ValidationException;
 
 class ProductoController extends Controller
 {
@@ -37,47 +38,68 @@ class ProductoController extends Controller
 
     public function create()
     {
-        $categorias = Categoria::where('estado', 1)->orderBy('nombre')->get();
-        $marcas = Marca::where('estado', 1)->orderBy('nombre')->get();
-        $proveedores = Proveedor::where('estado', 1)->orderBy('razon_social')->get();
+        $categorias = Categoria::where('estado', 1)->get();
+        $marcas = Marca::where('estado', 1)->get();
+        $proveedores = Proveedor::where('estado', 1)->get();
+        $producto = new Producto();
 
-        return view('productos.create', compact('categorias', 'marcas', 'proveedores'));
+        return view('productos.create', compact('categorias', 'marcas', 'proveedores', 'producto'));
     }
 
     public function store(Request $request)
     {
         try {
+            // Validación básica
+            $request->validate([
+                'codigo' => 'required|unique:productos,codigo',
+                'nombre' => 'required',
+                'id_categoria' => 'required',
+                'id_marca' => 'required',
+                'id_proveedor' => 'required',
+                'tipo_producto' => 'required|in:calzado,ropa',
+                'precio_compra' => 'required|numeric',
+                'precio_venta' => 'required|numeric',
+                'stock_minimo' => 'required|numeric',
+            ]);
+
             DB::beginTransaction();
 
-            // Crear el producto principal
-            $producto = new Producto();
-            $producto->codigo = $request->codigo;
-            $producto->nombre = $request->nombre;
-            $producto->id_categoria = $request->id_categoria;
-            $producto->id_marca = $request->id_marca;
-            $producto->descripcion = $request->descripcion;
-            $producto->precio_compra = $request->precio_compra;
-            $producto->precio_venta = $request->precio_venta;
-            $producto->stock = 0; // Se calculará de la suma de producto_talles
-            $producto->stock_minimo = $request->stock_minimo ?? 5;
-            $producto->material = $request->material;
-            $producto->genero = $request->genero;
-            $producto->estado = 1;
+            // Crear el producto base
+            $producto = Producto::create([
+                'codigo' => $request->codigo,
+                'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
+                'id_categoria' => $request->id_categoria,
+                'id_marca' => $request->id_marca,
+                'id_proveedor' => $request->id_proveedor,
+                'tipo_producto' => $request->tipo_producto,
+                'precio_compra' => $request->precio_compra,
+                'precio_venta' => $request->precio_venta,
+                'stock_minimo' => $request->stock_minimo,
+                'stock' => 0,
+                'estado' => 1
+            ]);
 
-            // Manejar la imagen
-            if ($request->hasFile('imagen')) {
-                $imagen = $request->file('imagen');
-                $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
-                $imagen->move(public_path('imagenes/productos'), $nombreImagen);
-                $producto->imagen = $nombreImagen;
-            }
+            $stockTotal = 0;
 
-            $producto->save();
+            // Para ropa
+            if ($request->tipo_producto === 'ropa' && $request->has('talles_ropa')) {
+                // Guardar talles y stock
+                foreach ($request->talles_ropa as $talle) {
+                    if (isset($request->stock_talle_ropa[$talle]) && $request->stock_talle_ropa[$talle] > 0) {
+                        $stock = (int)$request->stock_talle_ropa[$talle];
+                        DB::table('producto_talles')->insert([
+                            'id_producto' => $producto->id_producto,
+                            'talla' => $talle,
+                            'stock' => $stock
+                        ]);
+                        $stockTotal += $stock;
+                    }
+                }
 
-            // Guardar colores
-            if ($request->has('colores')) {
-                foreach ($request->colores as $color) {
-                    if (!empty($color)) {
+                // Guardar colores
+                if ($request->has('colores_ropa')) {
+                    foreach ($request->colores_ropa as $color) {
                         DB::table('producto_colores')->insert([
                             'id_producto' => $producto->id_producto,
                             'color' => $color
@@ -86,31 +108,38 @@ class ProductoController extends Controller
                 }
             }
 
-            // Guardar talles y stock
-            if ($request->has('talles')) {
-                $stockTotal = 0;
-                foreach ($request->talles as $key => $talle) {
-                    if (!empty($talle) && isset($request->stocks[$key])) {
-                        $stockTalle = intval($request->stocks[$key]);
+            // Para calzado
+            if ($request->tipo_producto === 'calzado' && $request->has('talles_calzado')) {
+                foreach ($request->talles_calzado as $talle) {
+                    if (isset($request->stock_talle_calzado[$talle]) && $request->stock_talle_calzado[$talle] > 0) {
+                        $stock = (int)$request->stock_talle_calzado[$talle];
                         DB::table('producto_talles')->insert([
                             'id_producto' => $producto->id_producto,
                             'talla' => $talle,
-                            'stock' => $stockTalle
+                            'stock' => $stock
                         ]);
-                        $stockTotal += $stockTalle;
+                        $stockTotal += $stock;
                     }
                 }
-                // Actualizar stock total en productos
-                $producto->stock = $stockTotal;
-                $producto->save();
             }
 
+            // Actualizar stock total del producto
+            $producto->update(['stock' => $stockTotal]);
+
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Producto guardado correctamente']);
+            return redirect()->route('productos.index')
+                ->with('success', '¡Producto guardado exitosamente! Se registraron los talles y colores seleccionados.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            \Log::error('Error al crear producto:', [
+                'mensaje' => $e->getMessage(),
+                'linea' => $e->getLine(),
+                'archivo' => $e->getFile()
+            ]);
+            return back()
+                ->withInput()
+                ->with('error', 'Error al crear el producto: ' . $e->getMessage());
         }
     }
 
@@ -130,7 +159,7 @@ class ProductoController extends Controller
     public function update(Request $request, Producto $producto)
     {
         try {
-            $request->validate([
+            $validated = $request->validate([
                 'codigo' => 'required|unique:productos,codigo,' . $producto->id_producto . ',id_producto',
                 'nombre' => 'required|max:100',
                 'id_categoria' => 'required|exists:categorias,id_categoria',
@@ -146,6 +175,8 @@ class ProductoController extends Controller
                 'genero' => 'nullable|in:Hombre,Mujer,Unisex,Niño,Niña',
                 'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
+
+            DB::beginTransaction();
 
             // Manejar la imagen si se subió una nueva
             if ($request->hasFile('imagen')) {
@@ -174,13 +205,15 @@ class ProductoController extends Controller
                 'color' => $request->color,
                 'material' => $request->material,
                 'genero' => $request->genero,
-                'estado' => $request->has('estado') ? 1 : 0
+                'estado' => 1
             ]);
 
+            DB::commit();
             return redirect()->route('productos.index')
                 ->with('success', 'Producto actualizado correctamente');
             
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Error al actualizar producto: ' . $e->getMessage());
             return back()
                 ->withInput()
@@ -249,5 +282,26 @@ class ProductoController extends Controller
                 'message' => 'Error al eliminar el producto: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getTallesColores(Producto $producto)
+    {
+        $talles = DB::table('producto_talles')
+            ->where('id_producto', $producto->id_producto)
+            ->select('talla', 'stock')
+            ->get();
+
+        $colores = null;
+        if ($producto->tipo_producto === 'ropa') {
+            $colores = DB::table('producto_colores')
+                ->where('id_producto', $producto->id_producto)
+                ->pluck('color');
+        }
+
+        return response()->json([
+            'tipo_producto' => $producto->tipo_producto,
+            'talles' => $talles,
+            'colores' => $colores
+        ]);
     }
 } 

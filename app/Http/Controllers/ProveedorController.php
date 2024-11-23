@@ -38,11 +38,14 @@ class ProveedorController extends Controller
             $proveedor->save();
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Proveedor guardado correctamente']);
+
+            return redirect()->route('proveedores.index')
+                ->with('success', 'Proveedor guardado correctamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            return back()->withInput()
+                ->with('error', 'Error al guardar el proveedor: ' . $e->getMessage());
         }
     }
 

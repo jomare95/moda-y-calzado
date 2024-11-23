@@ -20,10 +20,15 @@ class VentaController extends Controller
 
     public function create()
     {
-        $clientes = Cliente::where('estado', 1)->get();
-        $productos = Producto::with(['colores', 'talles'])->where('estado', 1)->get();
+        $productos = Producto::where('estado', 1)
+                            ->orderBy('nombre')
+                            ->get();
         
-        return view('ventas.create', compact('clientes', 'productos'));
+        $clientes = Cliente::where('estado', 1)
+                          ->orderBy('nombre')
+                          ->get();
+        
+        return view('ventas.create', compact('productos', 'clientes'));
     }
 
     public function store(Request $request)
@@ -87,7 +92,7 @@ class VentaController extends Controller
                         'id_producto' => $producto['producto_id'],
                         'talla' => $producto['talle']
                     ])
-                    ->lockForUpdate()  // Bloquear el registro para evitar condiciones de carrera
+                    ->lockForUpdate()
                     ->first();
 
                 if (!$productoTalle) {
@@ -101,17 +106,15 @@ class VentaController extends Controller
                                        '. Stock disponible: ' . $productoTalle->stock);
                 }
 
-                // Actualizar el stock usando la clave primaria compuesta
+                // Actualizar el stock
                 $affected = DB::table('producto_talles')
                     ->where([
                         'id_producto' => $producto['producto_id'],
                         'talla' => $producto['talle']
                     ])
-                    ->update([
-                        'stock' => DB::raw('stock - ' . $producto['cantidad'])
-                    ]);
+                    ->decrement('stock', $producto['cantidad']);
 
-                if (!$affected) {
+                if ($affected == 0) {
                     throw new \Exception('No se pudo actualizar el stock del producto ' . 
                                        $producto['nombre'] . ' talle ' . $producto['talle']);
                 }
@@ -119,25 +122,15 @@ class VentaController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true, 
-                'message' => 'Venta registrada correctamente',
-                'numero_comprobante' => $numeroComprobante,
-                'id_venta' => $venta->id_venta
-            ]);
+            // Redirigir a la página de confirmación
+            return redirect()->route('ventas.boleta', $venta->id_venta);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error en venta:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request' => $request->all()
-            ]);
-            
-            return response()->json([
-                'success' => false, 
-                'message' => 'Error al registrar la venta: ' . $e->getMessage()
-            ]);
+            \Log::error('Error en store:', ['error' => $e->getMessage()]);
+            return back()
+                ->withInput()
+                ->with('error', 'Error al registrar la venta: ' . $e->getMessage());
         }
     }
 
@@ -157,26 +150,43 @@ class VentaController extends Controller
     public function getProductoDetalles($id)
     {
         try {
+            \Log::info('Iniciando getProductoDetalles', ['id' => $id]);
+            
             $producto = Producto::findOrFail($id);
             
-            \Log::info('Buscando detalles para producto:', ['id' => $id]);
+            // Simplificar la estructura de los datos
+            $colores = ProductoColor::where('id_producto', $id)
+                ->get()
+                ->map(function($color) {
+                    return [
+                        'color' => $color->color
+                    ];
+                });
             
-            $colores = ProductoColor::where('id_producto', $id)->get();
-            $talles = ProductoTalle::where('id_producto', $id)->get();
+            $talles = ProductoTalle::where('id_producto', $id)
+                ->get()
+                ->map(function($talle) {
+                    return [
+                        'talla' => $talle->talla,
+                        'stock' => $talle->stock
+                    ];
+                });
             
-            \Log::info('Datos encontrados:', [
-                'colores' => $colores->toArray(),
-                'talles' => $talles->toArray(),
+            $response = [
+                'colores' => $colores->values()->toArray(),
+                'talles' => $talles->values()->toArray(),
                 'precio' => $producto->precio_venta
-            ]);
-
-            return response()->json([
-                'colores' => $colores,
-                'talles' => $talles,
-                'precio' => $producto->precio_venta
-            ]);
+            ];
+            
+            \Log::info('Enviando respuesta simplificada', $response);
+            
+            return response()->json($response);
+            
         } catch (\Exception $e) {
-            \Log::error('Error en getProductoDetalles: ' . $e->getMessage());
+            \Log::error('Error en getProductoDetalles', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

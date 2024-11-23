@@ -58,3 +58,9 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::get('/api/productos/{id}/detalles', [VentaController::class, 'getProductoDetalles'])->name('productos.detalles');
+
+Route::post('/productos', [ProductoController::class, 'store'])->name('productos.store');
+
+Route::post('/productos', [ProductoController::class, 'store'])->name('productos.store');
+
+// Route::get('/productos/{id}/detalles', [VentaController::class, 'getProductoDetalles']);

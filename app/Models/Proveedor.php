@@ -9,6 +9,8 @@ class Proveedor extends Model
     protected $table = 'proveedores';
     protected $primaryKey = 'id_proveedor';
     
+    public $timestamps = true;
+    
     protected $fillable = [
         'razon_social',
         'tipo_documento',
