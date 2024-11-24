@@ -73,11 +73,15 @@ class DashboardController extends Controller
                              ->get();
         
         // Últimas compras
-        $ultimasCompras = Compra::with('proveedor')
-                               ->where('estado', 'Completada')
-                               ->latest('fecha_compra')
-                               ->limit(5)
-                               ->get();
+        $ultimasCompras = Compra::with(['proveedor' => function($query) {
+            $query->withDefault([
+                'nombre' => 'Proveedor No Especificado'
+            ]);
+        }])
+        ->where('estado', 'Completada')
+        ->latest('fecha_compra')
+        ->limit(5)
+        ->get();
 
         // Gráfico de gastos últimos 7 días
         $gastosUltimos7Dias = Compra::where('estado', 'Completada')

@@ -82,43 +82,42 @@ class ProductoController extends Controller
 
             $stockTotal = 0;
 
-            // Para ropa
-            if ($request->tipo_producto === 'ropa' && $request->has('talles_ropa')) {
-                // Guardar talles y stock
-                foreach ($request->talles_ropa as $talle) {
-                    if (isset($request->stock_talle_ropa[$talle]) && $request->stock_talle_ropa[$talle] > 0) {
-                        $stock = (int)$request->stock_talle_ropa[$talle];
-                        DB::table('producto_talles')->insert([
-                            'id_producto' => $producto->id_producto,
+            // Para calzado
+            if ($request->tipo_producto === 'calzado' && $request->has('talles_calzado')) {
+                foreach ($request->talles_calzado as $talle) {
+                    $stock = isset($request->stock_talle_calzado[$talle]) ? (int)$request->stock_talle_calzado[$talle] : 0;
+                    if ($stock > 0) {
+                        $producto->talles()->create([
                             'talla' => $talle,
                             'stock' => $stock
                         ]);
                         $stockTotal += $stock;
+                    }
+                }
+            }
+
+            // Para ropa
+            if ($request->tipo_producto === 'ropa') {
+                // Guardar talles y stock
+                if ($request->has('talles_ropa')) {
+                    foreach ($request->talles_ropa as $talle) {
+                        $stock = isset($request->stock_talle_ropa[$talle]) ? (int)$request->stock_talle_ropa[$talle] : 0;
+                        if ($stock > 0) {
+                            $producto->talles()->create([
+                                'talla' => $talle,
+                                'stock' => $stock
+                            ]);
+                            $stockTotal += $stock;
+                        }
                     }
                 }
 
                 // Guardar colores
                 if ($request->has('colores_ropa')) {
                     foreach ($request->colores_ropa as $color) {
-                        DB::table('producto_colores')->insert([
-                            'id_producto' => $producto->id_producto,
+                        $producto->colores()->create([
                             'color' => $color
                         ]);
-                    }
-                }
-            }
-
-            // Para calzado
-            if ($request->tipo_producto === 'calzado' && $request->has('talles_calzado')) {
-                foreach ($request->talles_calzado as $talle) {
-                    if (isset($request->stock_talle_calzado[$talle]) && $request->stock_talle_calzado[$talle] > 0) {
-                        $stock = (int)$request->stock_talle_calzado[$talle];
-                        DB::table('producto_talles')->insert([
-                            'id_producto' => $producto->id_producto,
-                            'talla' => $talle,
-                            'stock' => $stock
-                        ]);
-                        $stockTotal += $stock;
                     }
                 }
             }
@@ -128,7 +127,7 @@ class ProductoController extends Controller
 
             DB::commit();
             return redirect()->route('productos.index')
-                ->with('success', '¡Producto guardado exitosamente! Se registraron los talles y colores seleccionados.');
+                ->with('success', '¡Producto guardado exitosamente!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -159,65 +158,62 @@ class ProductoController extends Controller
     public function update(Request $request, Producto $producto)
     {
         try {
-            $validated = $request->validate([
-                'codigo' => 'required|unique:productos,codigo,' . $producto->id_producto . ',id_producto',
-                'nombre' => 'required|max:100',
-                'id_categoria' => 'required|exists:categorias,id_categoria',
-                'id_marca' => 'required|exists:marcas,id_marca',
-                'descripcion' => 'nullable|max:255',
-                'precio_compra' => 'required|numeric|min:0',
-                'precio_venta' => 'required|numeric|min:0',
-                'stock' => 'required|integer|min:0',
-                'stock_minimo' => 'required|integer|min:0',
-                'talla' => 'nullable|max:10',
-                'color' => 'nullable|max:30',
-                'material' => 'nullable|max:50',
-                'genero' => 'nullable|in:Hombre,Mujer,Unisex,Niño,Niña',
-                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-            ]);
-
             DB::beginTransaction();
 
-            // Manejar la imagen si se subió una nueva
-            if ($request->hasFile('imagen')) {
-                // Eliminar imagen anterior si existe
-                if ($producto->imagen && file_exists(public_path('images/productos/' . $producto->imagen))) {
-                    unlink(public_path('images/productos/' . $producto->imagen));
+            // Actualizar datos básicos del producto
+            $producto->update($request->except(['talles_calzado', 'talles_ropa', 'colores_ropa', 'stock_talle_calzado', 'stock_talle_ropa']));
+
+            // Eliminar talles y colores existentes
+            $producto->talles()->delete();
+            $producto->colores()->delete();
+
+            $stockTotal = 0;
+
+            // Procesar talles según el tipo de producto
+            if ($request->tipo_producto === 'calzado' && $request->has('talles_calzado')) {
+                foreach ($request->talles_calzado as $talle) {
+                    $stock = isset($request->stock_talle_calzado[$talle]) ? (int)$request->stock_talle_calzado[$talle] : 0;
+                    if ($stock > 0) {
+                        $producto->talles()->create([
+                            'talla' => $talle,
+                            'stock' => $stock
+                        ]);
+                        $stockTotal += $stock;
+                    }
                 }
-                
-                $imagen = $request->file('imagen');
-                $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
-                $imagen->move(public_path('images/productos'), $nombreImagen);
-                $producto->imagen = $nombreImagen;
+            } elseif ($request->tipo_producto === 'ropa' && $request->has('talles_ropa')) {
+                foreach ($request->talles_ropa as $talle) {
+                    $stock = isset($request->stock_talle_ropa[$talle]) ? (int)$request->stock_talle_ropa[$talle] : 0;
+                    if ($stock > 0) {
+                        $producto->talles()->create([
+                            'talla' => $talle,
+                            'stock' => $stock
+                        ]);
+                        $stockTotal += $stock;
+                    }
+                }
+
+                // Procesar colores para ropa
+                if ($request->has('colores_ropa')) {
+                    foreach ($request->colores_ropa as $color) {
+                        $producto->colores()->create(['color' => $color]);
+                    }
+                }
             }
 
-            $producto->update([
-                'codigo' => $request->codigo,
-                'nombre' => $request->nombre,
-                'id_categoria' => $request->id_categoria,
-                'id_marca' => $request->id_marca,
-                'descripcion' => $request->descripcion,
-                'precio_compra' => $request->precio_compra,
-                'precio_venta' => $request->precio_venta,
-                'stock' => $request->stock,
-                'stock_minimo' => $request->stock_minimo,
-                'talla' => $request->talla,
-                'color' => $request->color,
-                'material' => $request->material,
-                'genero' => $request->genero,
-                'estado' => 1
-            ]);
+            // Actualizar stock total
+            $producto->update(['stock' => $stockTotal]);
 
             DB::commit();
-            return redirect()->route('productos.index')
-                ->with('success', 'Producto actualizado correctamente');
-            
+            return redirect()->route('productos.index')->with('success', 'Producto actualizado correctamente');
+
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al actualizar producto: ' . $e->getMessage());
-            return back()
-                ->withInput()
-                ->with('error', 'Error al actualizar el producto: ' . $e->getMessage());
+            \Log::error('Error al actualizar producto:', [
+                'mensaje' => $e->getMessage(),
+                'linea' => $e->getLine()
+            ]);
+            return back()->with('error', 'Error al actualizar el producto: ' . $e->getMessage());
         }
     }
 
@@ -261,9 +257,12 @@ class ProductoController extends Controller
             
             $producto = Producto::findOrFail($id);
             
-            // Primero eliminamos los registros relacionados
-            DB::table('detalle_ventas')->where('id_producto', $id)->delete();
+            // Eliminar registros relacionados en orden
+            DB::table('producto_colores')->where('id_producto', $id)->delete();
             DB::table('producto_talles')->where('id_producto', $id)->delete();
+            DB::table('detalle_compras')->where('id_producto', $id)->delete();
+            DB::table('detalle_ventas')->where('id_producto', $id)->delete();
+            DB::table('movimientos_inventario')->where('id_producto', $id)->delete();
             
             // Finalmente eliminamos el producto
             $producto->delete();
@@ -286,22 +285,32 @@ class ProductoController extends Controller
 
     public function getTallesColores(Producto $producto)
     {
-        $talles = DB::table('producto_talles')
-            ->where('id_producto', $producto->id_producto)
-            ->select('talla', 'stock')
-            ->get();
+        try {
+            $talles = DB::table('producto_talles')
+                ->where('id_producto', $producto->id_producto)
+                ->where('stock', '>', 0)  // Solo talles con stock disponible
+                ->select('talla', 'stock')
+                ->get();
 
-        $colores = null;
-        if ($producto->tipo_producto === 'ropa') {
+            // Obtener colores para ambos tipos de productos
             $colores = DB::table('producto_colores')
                 ->where('id_producto', $producto->id_producto)
                 ->pluck('color');
-        }
 
-        return response()->json([
-            'tipo_producto' => $producto->tipo_producto,
-            'talles' => $talles,
-            'colores' => $colores
-        ]);
+            return response()->json([
+                'success' => true,
+                'tipo_producto' => $producto->tipo_producto,
+                'talles' => $talles,
+                'colores' => $colores,
+                'precio_venta' => $producto->precio_venta
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error en getTallesColores: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener datos del producto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 } 

@@ -25,23 +25,33 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Código -->
-                <div>
+                <div class="mb-4">
                     <label for="codigo" class="block text-sm font-medium text-gray-700">Código *</label>
-                    <input type="text" name="codigo" id="codigo" value="{{ old('codigo') }}" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+                    <div class="flex gap-2">
+                        <input type="text" 
+                               name="codigo" 
+                               id="codigo" 
+                               required 
+                               class="flex-1 rounded-md border-gray-300">
+                        <button type="button" 
+                                onclick="generarCodigo()"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg">
+                            Generar Código
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Nombre -->
                 <div>
-                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre *</label>
-                    <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}" required
+                    <label for="nombre_producto" class="block text-sm font-medium text-gray-700">Nombre *</label>
+                    <input type="text" name="nombre" id="nombre_producto" value="{{ old('nombre') }}" required
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
                 </div>
 
                 <!-- Categoría -->
                 <div>
-                    <label for="id_categoria" class="block text-sm font-medium text-gray-700">Categoría *</label>
-                    <select name="id_categoria" id="id_categoria" required
+                    <label for="categoria_producto" class="block text-sm font-medium text-gray-700">Categoría *</label>
+                    <select name="id_categoria" id="categoria_producto" required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
                         <option value="">Seleccionar categoría</option>
                         @foreach($categorias as $categoria)
@@ -53,17 +63,21 @@
                 </div>
 
                 <!-- Marca -->
-                <div>
+                <div class="mb-4">
                     <label for="id_marca" class="block text-sm font-medium text-gray-700">Marca *</label>
-                    <select name="id_marca" id="id_marca" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
-                        <option value="">Seleccionar marca</option>
-                        @foreach($marcas as $marca)
-                            <option value="{{ $marca->id_marca }}" {{ old('id_marca') == $marca->id_marca ? 'selected' : '' }}>
-                                {{ $marca->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="flex gap-2">
+                        <select name="id_marca" id="id_marca" class="flex-1 rounded-md border-gray-300">
+                            <option value="">Seleccionar marca</option>
+                            @foreach($marcas as $marca)
+                                <option value="{{ $marca->id_marca }}">{{ $marca->nombre }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" 
+                                onclick="mostrarModalMarca()"
+                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">
+                            Nueva Marca
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Proveedor -->
@@ -149,7 +163,7 @@
                 </div>
 
                 <!-- Sección Calzado -->
-                <div id="seccion_calzado" class="mt-6" style="display: none;">
+                <div id="seccion_calzado" class="mt-6" style="{{ old('tipo_producto') == 'calzado' ? '' : 'display: none' }}">
                     <div class="grid grid-cols-1 gap-6">
                         <!-- Talles Calzado -->
                         <div class="bg-white p-4 rounded-lg">
@@ -167,6 +181,36 @@
                                                placeholder="Stock"
                                                min="0"
                                                class="w-full text-sm rounded-md border-gray-300">
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Colores Calzado -->
+                        <div class="mt-4">
+                            <h3 class="text-lg font-medium text-gray-700 mb-4">Colores disponibles</h3>
+                            <div class="grid grid-cols-4 gap-4">
+                                @php
+                                    $coloresCalzado = [
+                                        'Negro' => '#000000',
+                                        'Marrón' => '#8B4513',
+                                        'Blanco' => '#FFFFFF',
+                                        'Gris' => '#808080',
+                                        'Beige' => '#F5F5DC'
+                                    ];
+                                @endphp
+                                
+                                @foreach($coloresCalzado as $nombre => $codigo)
+                                    <div class="flex items-center border rounded p-3">
+                                        <input type="checkbox" 
+                                               name="colores[]" 
+                                               value="{{ $nombre }}" 
+                                               id="color_{{ $nombre }}"
+                                               class="rounded border-gray-300">
+                                        <label for="color_{{ $nombre }}" class="flex items-center ml-2">
+                                            <span class="w-4 h-4 inline-block mr-2 border" style="background-color: {{ $codigo }};"></span>
+                                            {{ $nombre }}
+                                        </label>
                                     </div>
                                 @endforeach
                             </div>
@@ -244,6 +288,33 @@
         </form>
     </div>
 </div>
+
+<!-- Modal (fuera del formulario) -->
+<div id="modalMarca" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900">Nueva Marca</h3>
+            <div class="mt-2">
+                <input type="text" 
+                       id="nombreMarca" 
+                       class="w-full rounded-md border-gray-300" 
+                       placeholder="Nombre de la marca">
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" 
+                        onclick="cerrarModalMarca()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    Cancelar
+                </button>
+                <button type="button" 
+                        onclick="guardarMarca()"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection 
 
 @push('scripts')
@@ -259,9 +330,6 @@ function mostrarTallesSegunTipo() {
     } else if (tipoProducto === 'ropa') {
         seccionCalzado.style.display = 'none';
         seccionRopa.style.display = 'block';
-    } else {
-        seccionCalzado.style.display = 'none';
-        seccionRopa.style.display = 'none';
     }
 }
 
@@ -269,5 +337,68 @@ function mostrarTallesSegunTipo() {
 document.addEventListener('DOMContentLoaded', function() {
     mostrarTallesSegunTipo();
 });
+
+function mostrarModalMarca() {
+    const modal = document.getElementById('modalMarca');
+    if (modal) {
+        modal.classList.remove('hidden');
+    } else {
+        console.error('Modal no encontrado');
+    }
+}
+
+function cerrarModalMarca() {
+    const modal = document.getElementById('modalMarca');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('nombreMarca').value = '';
+    }
+}
+
+function guardarMarca() {
+    const nombre = document.getElementById('nombreMarca').value;
+    if (!nombre) {
+        alert('Por favor ingrese el nombre de la marca');
+        return;
+    }
+
+    fetch('/marcas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ nombre })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('id_marca');
+            const option = new Option(data.marca.nombre, data.marca.id_marca);
+            select.add(option);
+            select.value = data.marca.id_marca;
+            
+            cerrarModalMarca();
+            alert('Marca creada exitosamente');
+        } else {
+            alert(data.message || 'Error al crear la marca');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al crear la marca');
+    });
+}
+
+function generarCodigo() {
+    // Generar un código alfanumérico de 8 caracteres
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let codigo = '';
+    for (let i = 0; i < 8; i++) {
+        codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    
+    document.getElementById('codigo').value = codigo;
+}
 </script>
 @endpush 

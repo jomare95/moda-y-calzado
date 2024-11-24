@@ -35,10 +35,22 @@ class CompraController extends Controller
         try {
             DB::beginTransaction();
 
+            // Generar número de comprobante
+            $ultimaCompra = Compra::latest()->first();
+            $ultimoNumero = $ultimaCompra ? intval(substr($ultimaCompra->numero_comprobante, -8)) : 0;
+            $nuevoNumero = str_pad($ultimoNumero + 1, 8, '0', STR_PAD_LEFT);
+            
+            $numeroComprobante = sprintf(
+                '%s-%s-%s',
+                substr($request->tipo_comprobante, 0, 1),
+                date('Ymd'),
+                $nuevoNumero
+            );
+
             // Crear la compra
             $compra = new Compra();
             $compra->id_proveedor = $request->id_proveedor;
-            $compra->numero_comprobante = $request->numero_comprobante;
+            $compra->numero_comprobante = $numeroComprobante;  // Usar el número generado
             $compra->fecha_compra = $request->fecha_compra;
             $compra->tipo_comprobante = $request->tipo_comprobante;
             $compra->subtotal = $request->subtotal;
@@ -77,5 +89,22 @@ class CompraController extends Controller
         return view('compras.print', [
             'compra' => $compra->load('proveedor', 'detalles.producto')
         ]);
+    }
+
+    public function show(Compra $compra)
+    {
+        try {
+            // Cargar las relaciones necesarias
+            $compra->load(['proveedor', 'usuario', 'detalles.producto']);
+            
+            return view('compras.show', [
+                'compra' => $compra,
+                'detalles' => $compra->detalles
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error al mostrar compra: ' . $e->getMessage());
+            return redirect()->route('compras.index')
+                ->with('error', 'Error al mostrar la compra');
+        }
     }
 } 

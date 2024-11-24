@@ -114,10 +114,10 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="{{ route('ventas.show', $venta->id_venta) }}" 
-                           class="text-blue-600 hover:text-blue-900 mr-3" 
-                           title="Ver Detalles">
-                            <i class="fas fa-eye"></i>
+                        <a href="{{ route('ventas.comprobante', $venta->id_venta) }}" 
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                           target="_blank">
+                            Ver Comprobante
                         </a>
                         <a href="{{ route('ventas.print', $venta->id_venta) }}" 
                            class="text-green-600 hover:text-green-900 mr-3"

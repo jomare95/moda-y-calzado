@@ -470,6 +470,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Debe agregar al menos un producto a la venta');
                 return false;
             }
+
+            // Mostrar mensaje de éxito
+            alert('Venta registrada exitosamente');
+            
+            // Continuar con el envío normal del formulario
+            // (esto mostrará la boleta como ya lo hacía)
+            return true;
         });
     }
 

@@ -191,7 +191,7 @@
                             <i class="fas fa-shopping-basket text-green-500"></i>
                         </div>
                         <div>
-                            <p class="font-medium">{{ $compra->proveedor->nombre ?? 'Proveedor No Especificado' }}</p>
+                            <p class="font-medium">{{ $compra->proveedor->nombre }}</p>
                             <p class="text-sm text-gray-500">{{ $compra->tipo_comprobante }} #{{ $compra->numero_comprobante }}</p>
                         </div>
                     </div>

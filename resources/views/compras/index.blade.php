@@ -43,7 +43,8 @@
                             {{ $compra->fecha_compra ? \Carbon\Carbon::parse($compra->fecha_compra)->format('d/m/Y H:i') : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $compra->numero_factura }}
+                            {{ $compra->tipo_comprobante }} 
+                            {{ $compra->numero_comprobante }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $compra->proveedor->razon_social ?? 'N/A' }}

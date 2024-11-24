@@ -11,6 +11,38 @@
         </a>
     </div>
 
+    <div class="mb-4">
+        <form action="{{ route('clientes.index') }}" method="GET" class="flex gap-4">
+            <div class="flex-1">
+                <input type="text" 
+                       name="search" 
+                       placeholder="Buscar por nombre..." 
+                       value="{{ request('search') }}"
+                       class="w-full rounded-md border-gray-300">
+            </div>
+            
+            <div class="flex-1">
+                <input type="text" 
+                       name="dni" 
+                       placeholder="Buscar por DNI..." 
+                       value="{{ request('dni') }}"
+                       class="w-full rounded-md border-gray-300">
+            </div>
+
+            <button type="submit" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                Filtrar
+            </button>
+            
+            @if(request('search') || request('dni'))
+                <a href="{{ route('clientes.index') }}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    Limpiar
+                </a>
+            @endif
+        </form>
+    </div>
+
     @if(session('success'))
         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
             {{ session('success') }}

@@ -29,8 +29,11 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-2">Número Comprobante *</label>
-                    <input type="text" name="numero_comprobante" class="w-full rounded-md" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Número de Comprobante</label>
+                    <input type="text" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" 
+                           disabled 
+                           placeholder="Se generará automáticamente">
                 </div>
                 <div>
                     <label class="block mb-2">Fecha *</label>

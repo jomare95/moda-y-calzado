@@ -10,6 +10,7 @@ use App\Http\Controllers\VentaController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\MarcaController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -49,6 +50,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ventas/boleta/{id}', [VentaController::class, 'mostrarBoleta'])->name('ventas.boleta');
     
     Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
+    
+    Route::get('/compras/{compra}', [CompraController::class, 'show'])->name('compras.show');
+    
+    Route::get('ventas/comprobante/{id}', [VentaController::class, 'mostrarComprobante'])->name('ventas.comprobante');
+    
+    Route::post('ventas/{id}/anular', [VentaController::class, 'anular'])->name('ventas.anular');
 });
 
 Route::middleware('guest')->group(function () {
@@ -64,3 +71,5 @@ Route::post('/productos', [ProductoController::class, 'store'])->name('productos
 Route::post('/productos', [ProductoController::class, 'store'])->name('productos.store');
 
 // Route::get('/productos/{id}/detalles', [VentaController::class, 'getProductoDetalles']);
+
+Route::post('/marcas', [MarcaController::class, 'store']);

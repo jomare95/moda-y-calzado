@@ -7,10 +7,30 @@ use Illuminate\Support\Facades\DB;
 
 class ClienteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $clientes = Cliente::orderBy('nombre')->paginate(10);
-        return view('clientes.index', compact('clientes'));
+        try {
+            $query = Cliente::query();
+
+            // Filtro por nombre
+            if ($request->filled('search')) {
+                $query->where('nombre', 'like', '%' . $request->search . '%');
+            }
+
+            // Filtro por DNI
+            if ($request->filled('dni')) {
+                $query->where('dni', 'like', '%' . $request->dni . '%');
+            }
+
+            $clientes = $query->orderBy('nombre')
+                             ->paginate(10)
+                             ->withQueryString();
+
+            return view('clientes.index', compact('clientes'));
+        } catch (\Exception $e) {
+            \Log::error('Error en ClienteController@index: ' . $e->getMessage());
+            return back()->with('error', 'Error al cargar los clientes');
+        }
     }
 
     public function create()

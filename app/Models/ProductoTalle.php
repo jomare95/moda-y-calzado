@@ -8,6 +8,8 @@ class ProductoTalle extends Model
 {
     protected $table = 'producto_talles';
     
+    public $timestamps = false;
+    
     public $incrementing = false;
     protected $primaryKey = ['id_producto', 'talla'];
     

@@ -12,10 +12,30 @@ use DB;
 
 class VentaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ventas = Venta::with('cliente')->latest()->paginate(10);
-        return view('ventas.index', compact('ventas'));
+        try {
+            $query = Venta::with(['cliente', 'usuario']);
+
+            // Filtro por fecha inicio
+            if ($request->filled('fecha_inicio')) {
+                $query->whereDate('fecha_venta', '>=', $request->fecha_inicio);
+            }
+
+            // Filtro por fecha fin
+            if ($request->filled('fecha_fin')) {
+                $query->whereDate('fecha_venta', '<=', $request->fecha_fin);
+            }
+
+            $ventas = $query->orderBy('fecha_venta', 'desc')
+                           ->paginate(10)
+                           ->withQueryString();
+
+            return view('ventas.index', compact('ventas'));
+        } catch (\Exception $e) {
+            \Log::error('Error en VentaController@index: ' . $e->getMessage());
+            return back()->with('error', 'Error al cargar las ventas');
+        }
     }
 
     public function create()
@@ -34,14 +54,12 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'productos' => 'required|json',
-                'tipo_comprobante' => 'required|string',
-                'tipo_pago' => 'required|string',
-                'subtotal' => 'required|numeric',
-                'iva' => 'required|numeric',
-                'total' => 'required|numeric'
-            ]);
+            // Decodificar el JSON de productos
+            $productos = json_decode($request->productos, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Error al decodificar los productos');
+            }
 
             DB::beginTransaction();
 
@@ -72,65 +90,43 @@ class VentaController extends Controller
                 'estado' => 'Completada'
             ]);
 
-            $productos = json_decode($request->productos, true);
-            
+            // Guardar detalles y actualizar stock
             foreach ($productos as $producto) {
                 // Crear detalle de venta
-                DetalleVenta::create([
-                    'id_venta' => $venta->id_venta,
+                $detalle = $venta->detalles()->create([
                     'id_producto' => $producto['producto_id'],
                     'cantidad' => $producto['cantidad'],
                     'precio_unitario' => $producto['precio'],
                     'subtotal' => $producto['subtotal'],
-                    'color' => $producto['color'],
-                    'talle' => $producto['talle']
+                    'talle' => $producto['talle'],
+                    'color' => $producto['color']
                 ]);
 
-                // Verificar y actualizar stock
-                $productoTalle = DB::table('producto_talles')
-                    ->where([
-                        'id_producto' => $producto['producto_id'],
-                        'talla' => $producto['talle']
-                    ])
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$productoTalle) {
-                    throw new \Exception('No se encontró el talle ' . $producto['talle'] . 
-                                       ' para el producto ' . $producto['nombre']);
+                // Actualizar stock en producto_talles
+                if (!empty($producto['talle'])) {
+                    DB::table('producto_talles')
+                        ->where('id_producto', $producto['producto_id'])
+                        ->where('talla', $producto['talle'])
+                        ->decrement('stock', $producto['cantidad']);
                 }
 
-                if ($productoTalle->stock < $producto['cantidad']) {
-                    throw new \Exception('Stock insuficiente para el producto ' . 
-                                       $producto['nombre'] . ' talle ' . $producto['talle'] .
-                                       '. Stock disponible: ' . $productoTalle->stock);
-                }
+                // Recalcular y actualizar stock total del producto
+                $stockTotal = DB::table('producto_talles')
+                    ->where('id_producto', $producto['producto_id'])
+                    ->sum('stock');
 
-                // Actualizar el stock
-                $affected = DB::table('producto_talles')
-                    ->where([
-                        'id_producto' => $producto['producto_id'],
-                        'talla' => $producto['talle']
-                    ])
-                    ->decrement('stock', $producto['cantidad']);
-
-                if ($affected == 0) {
-                    throw new \Exception('No se pudo actualizar el stock del producto ' . 
-                                       $producto['nombre'] . ' talle ' . $producto['talle']);
-                }
+                DB::table('productos')
+                    ->where('id_producto', $producto['producto_id'])
+                    ->update(['stock' => $stockTotal]);
             }
 
             DB::commit();
-
-            // Redirigir a la página de confirmación
-            return redirect()->route('ventas.boleta', $venta->id_venta);
+            return response()->json(['success' => true, 'id' => $venta->id_venta]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error en store:', ['error' => $e->getMessage()]);
-            return back()
-                ->withInput()
-                ->with('error', 'Error al registrar la venta: ' . $e->getMessage());
+            \Log::error('Error al crear venta: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 
@@ -195,5 +191,84 @@ class VentaController extends Controller
     {
         $venta = Venta::with(['cliente', 'detalles.producto'])->findOrFail($id);
         return view('ventas.boleta', compact('venta'));
+    }
+
+    public function mostrarComprobante($id)
+    {
+        try {
+            $venta = Venta::with(['cliente', 'detalles.producto'])->findOrFail($id);
+            
+            \Log::info('Mostrando comprobante:', [
+                'id_venta' => $id,
+                'tipo_comprobante' => $venta->tipo_comprobante
+            ]);
+
+            $vista = match($venta->tipo_comprobante) {
+                'Boleta' => 'ventas.comprobantes.boleta',
+                'Factura' => 'ventas.comprobantes.factura',
+                'Ticket' => 'ventas.comprobantes.ticket',
+                default => 'ventas.comprobantes.boleta'
+            };
+
+            \Log::info('Vista seleccionada:', ['vista' => $vista]);
+
+            return view($vista, compact('venta'));
+        } catch (\Exception $e) {
+            \Log::error('Error al mostrar comprobante:', [
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', 'Error al mostrar el comprobante');
+        }
+    }
+
+    public function anular($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $venta = Venta::findOrFail($id);
+            
+            // Verificar que la venta no esté ya anulada
+            if ($venta->estado === 'Anulada') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La venta ya está anulada'
+                ]);
+            }
+
+            // Restaurar stock
+            foreach ($venta->detalles as $detalle) {
+                // Restaurar stock en producto_talles
+                if (!empty($detalle->talle)) {
+                    DB::table('producto_talles')
+                        ->where('id_producto', $detalle->id_producto)
+                        ->where('talla', $detalle->talle)
+                        ->increment('stock', $detalle->cantidad);
+                }
+
+                // Recalcular y actualizar stock total del producto
+                $stockTotal = DB::table('producto_talles')
+                    ->where('id_producto', $detalle->id_producto)
+                    ->sum('stock');
+
+                DB::table('productos')
+                    ->where('id_producto', $detalle->id_producto)
+                    ->update(['stock' => $stockTotal]);
+            }
+
+            // Actualizar estado de la venta
+            $venta->update(['estado' => 'Anulada']);
+
+            DB::commit();
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al anular venta: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al anular la venta: ' . $e->getMessage()
+            ]);
+        }
     }
 } 
