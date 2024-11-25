@@ -50,6 +50,65 @@
         </div>
     </div>
 
+    <!-- Agregar después del div de estadísticas y antes de la tabla -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <form action="{{ route('productos.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Búsqueda por nombre/código -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                <input type="text" 
+                       name="search" 
+                       value="{{ request('search') }}"
+                       placeholder="Nombre o código" 
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+            </div>
+
+            <!-- Filtro por categoría -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                <select name="categoria" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+                    <option value="">Todas las categorías</option>
+                    @foreach($categorias as $categoria)
+                        <option value="{{ $categoria->id_categoria }}" {{ request('categoria') == $categoria->id_categoria ? 'selected' : '' }}>
+                            {{ $categoria->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Filtro por estado -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select name="estado" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+                    <option value="">Todos</option>
+                    <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
+                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+            </div>
+
+            <!-- Filtro por stock -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Stock</label>
+                <select name="stock" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+                    <option value="">Todos</option>
+                    <option value="bajo" {{ request('stock') === 'bajo' ? 'selected' : '' }}>Bajo stock</option>
+                    <option value="sin" {{ request('stock') === 'sin' ? 'selected' : '' }}>Sin stock</option>
+                    <option value="con" {{ request('stock') === 'con' ? 'selected' : '' }}>Con stock</option>
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="md:col-span-4 flex justify-end space-x-2">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                    <i class="fas fa-search mr-2"></i>Filtrar
+                </button>
+                <a href="{{ route('productos.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                    <i class="fas fa-times mr-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
     <!-- Encabezado y Botones -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Productos</h1>

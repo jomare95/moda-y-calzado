@@ -21,7 +21,9 @@ class Compra extends Model
     ];
 
     protected $dates = [
-        'fecha_compra'
+        'fecha_compra',
+        'created_at',
+        'updated_at'
     ];
 
     public function proveedor()

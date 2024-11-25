@@ -3,7 +3,7 @@
         <div class="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
             <div class="bg-indigo-600 px-6 py-8">
                 <h2 class="text-2xl font-bold text-center text-white mb-2">
-                    {{ config('app.name', 'Laravel') }}
+                    Moda y Calzado
                 </h2>
                 <p class="text-center text-indigo-200">Ingresa tus credenciales para acceder</p>
             </div>

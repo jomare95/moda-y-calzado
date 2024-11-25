@@ -17,14 +17,19 @@ class VentaController extends Controller
         try {
             $query = Venta::with(['cliente', 'usuario']);
 
-            // Filtro por fecha inicio
-            if ($request->filled('fecha_inicio')) {
-                $query->whereDate('fecha_venta', '>=', $request->fecha_inicio);
+            // Filtro por fecha desde
+            if ($request->filled('fecha_desde')) {
+                $query->whereDate('fecha_venta', '>=', $request->fecha_desde);
             }
 
-            // Filtro por fecha fin
-            if ($request->filled('fecha_fin')) {
-                $query->whereDate('fecha_venta', '<=', $request->fecha_fin);
+            // Filtro por fecha hasta
+            if ($request->filled('fecha_hasta')) {
+                $query->whereDate('fecha_venta', '<=', $request->fecha_hasta);
+            }
+
+            // Filtro por estado
+            if ($request->filled('estado')) {
+                $query->where('estado', $request->estado);
             }
 
             $ventas = $query->orderBy('fecha_venta', 'desc')
@@ -204,10 +209,9 @@ class VentaController extends Controller
             ]);
 
             $vista = match($venta->tipo_comprobante) {
-                'Boleta' => 'ventas.comprobantes.boleta',
-                'Factura' => 'ventas.comprobantes.factura',
+                'Boleta' => 'ventas.boleta',
                 'Ticket' => 'ventas.comprobantes.ticket',
-                default => 'ventas.comprobantes.boleta'
+                default => 'ventas.boleta'
             };
 
             \Log::info('Vista seleccionada:', ['vista' => $vista]);

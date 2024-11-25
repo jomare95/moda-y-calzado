@@ -94,8 +94,8 @@ class CompraController extends Controller
     public function show(Compra $compra)
     {
         try {
-            // Cargar las relaciones necesarias
-            $compra->load(['proveedor', 'usuario', 'detalles.producto']);
+            // Cargar solo las relaciones que existen
+            $compra->load(['proveedor', 'detalles.producto']);
             
             return view('compras.show', [
                 'compra' => $compra,

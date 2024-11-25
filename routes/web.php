@@ -51,8 +51,6 @@ Route::middleware(['auth'])->group(function () {
     
     Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
     
-    Route::get('/compras/{compra}', [CompraController::class, 'show'])->name('compras.show');
-    
     Route::get('ventas/comprobante/{id}', [VentaController::class, 'mostrarComprobante'])->name('ventas.comprobante');
     
     Route::post('ventas/{id}/anular', [VentaController::class, 'anular'])->name('ventas.anular');
@@ -73,3 +71,5 @@ Route::post('/productos', [ProductoController::class, 'store'])->name('productos
 // Route::get('/productos/{id}/detalles', [VentaController::class, 'getProductoDetalles']);
 
 Route::post('/marcas', [MarcaController::class, 'store']);
+
+Route::get('/ventas/{venta}/comprobante', [VentaController::class, 'mostrarComprobante'])->name('ventas.comprobante');

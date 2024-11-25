@@ -13,19 +13,55 @@ use Illuminate\Validation\ValidationException;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $productos = Producto::with(['categoria', 'marca'])
-                ->orderBy('nombre')
-                ->paginate(10);
+            $query = Producto::with(['categoria', 'marca']);
 
+            // Búsqueda por nombre o código
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('nombre', 'LIKE', "%{$search}%")
+                      ->orWhere('codigo', 'LIKE', "%{$search}%");
+                });
+            }
+
+            // Filtro por categoría
+            if ($request->filled('categoria')) {
+                $query->where('id_categoria', $request->categoria);
+            }
+
+            // Filtro por estado
+            if ($request->filled('estado')) {
+                $query->where('estado', $request->estado);
+            }
+
+            // Filtro por stock
+            if ($request->filled('stock')) {
+                switch ($request->stock) {
+                    case 'bajo':
+                        $query->whereRaw('stock <= stock_minimo AND stock > 0');
+                        break;
+                    case 'sin':
+                        $query->where('stock', 0);
+                        break;
+                    case 'con':
+                        $query->where('stock', '>', 0);
+                        break;
+                }
+            }
+
+            $productos = $query->orderBy('nombre')->paginate(10);
+            $categorias = Categoria::where('estado', 1)->get();
+            
             $totalProductos = Producto::count();
             $productosActivos = Producto::where('estado', 1)->count();
             $productosBajoStock = Producto::whereRaw('stock <= stock_minimo')->count();
 
             return view('productos.index', compact(
                 'productos', 
+                'categorias',
                 'totalProductos', 
                 'productosActivos', 
                 'productosBajoStock'

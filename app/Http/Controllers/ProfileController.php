@@ -33,6 +33,11 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+        
+        // Forzar la recarga de la sesión
+        $request->session()->forget('_token');
+        $request->session()->regenerate();
+        Auth::user()->refresh();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

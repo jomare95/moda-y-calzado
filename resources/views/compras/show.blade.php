@@ -19,10 +19,10 @@
                     <div>
                         <h3 class="text-lg font-semibold text-gray-700">Información General</h3>
                         <div class="mt-2 space-y-2">
-                            <p><span class="font-medium">Número:</span> {{ $compra->numero_compra }}</p>
-                            <p><span class="font-medium">Fecha:</span> {{ $compra->fecha_compra }}</p>
-                            <p><span class="font-medium">Proveedor:</span> {{ $compra->proveedor->nombre }}</p>
-                            <p><span class="font-medium">Usuario:</span> {{ $compra->usuario->name }}</p>
+                            <p><span class="font-medium">Número:</span> {{ $compra->tipo_comprobante }} {{ $compra->numero_comprobante }}</p>
+                            <p><span class="font-medium">Fecha:</span> {{ \Carbon\Carbon::parse($compra->fecha_compra)->format('d/m/Y H:i') }}</p>
+                            <p><span class="font-medium">Proveedor:</span> {{ $compra->proveedor->razon_social }}</p>
+                            <p><span class="font-medium">Estado:</span> {{ $compra->estado }}</p>
                         </div>
                     </div>
                     <div>

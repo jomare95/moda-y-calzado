@@ -128,6 +128,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 calcularTotales();
             }
         }
+
+        // Agregar el evento para eliminar producto
+        const btnEliminar = item.querySelector('.eliminar-producto');
+        if (btnEliminar) {
+            btnEliminar.addEventListener('click', function() {
+                // Verificar que haya más de un producto antes de eliminar
+                if (document.querySelectorAll('.producto-item').length > 1) {
+                    item.remove();
+                    calcularTotales();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe mantener al menos un producto en la compra'
+                    });
+                }
+            });
+        }
     }
 
     function calcularTotales() {
