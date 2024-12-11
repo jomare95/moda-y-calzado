@@ -83,4 +83,9 @@ class CategoriaController extends Controller
                 ->with('error', 'Error al desactivar la categoría: ' . $e->getMessage());
         }
     }
+
+    public function show(Categoria $categoria)
+    {
+        return view('categorias.show', compact('categoria'));
+    }
 } 

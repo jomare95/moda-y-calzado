@@ -2,13 +2,20 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Panel de Control</h1>
+
+    <!-- Botón para ver reportes -->
+    <div class="mb-4">
+        <a href="{{ route('reportes.index') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Ver Reportes
+        </a>
+    </div>
+
     @if(session('error'))
         <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
             {{ session('error') }}
         </div>
     @endif
-
-    <h1 class="text-3xl font-bold text-gray-800 mb-8">Panel de Control</h1>
 
     <!-- Resumen General con diseño mejorado -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
@@ -106,9 +113,10 @@
     <div class="bg-white rounded-lg shadow-lg p-6 mb-10">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold text-gray-800">Productos Más Vendidos Hoy</h2>
-            <button class="text-blue-500 hover:text-blue-700">
-                <i class="fas fa-download mr-1"></i> Exportar
-            </button>
+            <a href="{{ route('ventas.index', ['fecha_desde' => date('Y-m-d'), 'fecha_hasta' => date('Y-m-d')]) }}" 
+               class="text-blue-500 hover:text-blue-700">
+                <i class="fas fa-list mr-1"></i> Ver Ventas del Día
+            </a>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">

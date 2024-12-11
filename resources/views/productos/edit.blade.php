@@ -166,6 +166,27 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <!-- Tipo de Producto -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Producto</label>
+                        <select name="tipo_producto" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" required>
+                            <option value="ropa" {{ $producto->tipo_producto == 'ropa' ? 'selected' : '' }}>Ropa</option>
+                            <option value="calzado" {{ $producto->tipo_producto == 'calzado' ? 'selected' : '' }}>Calzado</option>
+                        </select>
+                    </div>
+
+                    <!-- Color -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                        <input type="text" name="color" value="{{ old('color', $producto->color) }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Talle -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Talle</label>
+                        <input type="text" name="talle" value="{{ old('talle', $producto->talle) }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
                 </div>
 
                 <!-- Descripción -->
@@ -193,18 +214,6 @@
                     <input type="file" 
                            name="imagen" 
                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                </div>
-
-                <!-- Tipo de Producto -->
-                <div>
-                    <label for="tipo_producto" class="block text-sm font-medium text-gray-700">Tipo de Producto *</label>
-                    <select name="tipo_producto" 
-                            id="tipo_producto" 
-                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            onchange="mostrarTallesSegunTipo()">
-                        <option value="calzado" {{ $producto->tipo_producto == 'calzado' ? 'selected' : '' }}>Calzado</option>
-                        <option value="ropa" {{ $producto->tipo_producto == 'ropa' ? 'selected' : '' }}>Ropa</option>
-                    </select>
                 </div>
 
                 <!-- Secciones de Talles -->

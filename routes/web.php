@@ -11,6 +11,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\MarcaController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -54,6 +55,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('ventas/comprobante/{id}', [VentaController::class, 'mostrarComprobante'])->name('ventas.comprobante');
     
     Route::post('ventas/{id}/anular', [VentaController::class, 'anular'])->name('ventas.anular');
+    
+    Route::get('/dashboard/exportar-productos-vendidos', [DashboardController::class, 'exportarProductosVendidosHoy'])
+        ->name('dashboard.exportar-productos-vendidos');
+    
+    // Ruta para la vista de reportes
+    Route::get('/reportes', [ReportController::class, 'reportes'])->name('reportes.index');
 });
 
 Route::middleware('guest')->group(function () {
@@ -73,3 +80,5 @@ Route::post('/productos', [ProductoController::class, 'store'])->name('productos
 Route::post('/marcas', [MarcaController::class, 'store']);
 
 Route::get('/ventas/{venta}/comprobante', [VentaController::class, 'mostrarComprobante'])->name('ventas.comprobante');
+
+Route::get('/categorias/{categoria}', [CategoriaController::class, 'show'])->name('categorias.show');

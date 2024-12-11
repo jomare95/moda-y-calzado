@@ -7,11 +7,13 @@ use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\DetalleVenta;
 use App\Models\Compra;
+use App\Models\Caja;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    
     public function index()
     {
         // Obtener fecha actual
@@ -111,5 +113,21 @@ class DashboardController extends Controller
             'ultimasVentas',
             'ultimasCompras'
         ));
+
+         // Obtener la última caja abierta
+         $cajaAbierta = Caja::where('estado', 'Abierta')->first();
+
+         // Aquí puedes agregar otras consultas necesarias para las variables que usas en la vista
+         $ventasHoy = 0; // Reemplaza con la lógica para obtener las ventas del día
+         $ingresosHoy = 0; // Reemplaza con la lógica para obtener los ingresos del día
+         $gastosHoy = 0; // Reemplaza con la lógica para obtener los gastos del día
+         $balanceHoy = $ingresosHoy - $gastosHoy; // Ejemplo de cálculo de balance
+         $productosMasVendidosHoy = []; // Reemplaza con la lógica para obtener los productos más vendidos
+         $ultimasVentas = []; // Reemplaza con la lógica para obtener las últimas ventas
+         $ultimasCompras = []; // Reemplaza con la lógica para obtener las últimas compras
+ 
+         // Asegúrate de que la variable $cajaAbierta se pase a la vista
+         return view('dashboard', compact('cajaAbierta', 'ventasHoy', 'ingresosHoy', 'gastosHoy', 'balanceHoy', 'productosMasVendidosHoy', 'ultimasVentas', 'ultimasCompras'));
+        
     }
 }

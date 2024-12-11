@@ -275,4 +275,20 @@ class VentaController extends Controller
             ]);
         }
     }
+
+    public function ventasDiarias()
+    {
+        try {
+            $ventas = Venta::with(['cliente', 'detalles.producto'])
+                ->whereDate('fecha_venta', today())
+                ->where('estado', '!=', 'Anulada')
+                ->latest()
+                ->get();
+
+            return view('ventas.diarias', compact('ventas'));
+        } catch (\Exception $e) {
+            \Log::error('Error al mostrar ventas diarias: ' . $e->getMessage());
+            return back()->with('error', 'Error al cargar las ventas del día');
+        }
+    }
 } 

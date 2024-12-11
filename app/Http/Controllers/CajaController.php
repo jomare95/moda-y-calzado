@@ -29,6 +29,17 @@ class CajaController extends Controller
             'estado' => 'cerrada'
         ]);
 
-        return redirect()->back()->with('success', 'Caja cerrada correctamente');
+        return redirect()->route('cajas.index')->with('success', 'Caja cerrada correctamente');
+    }
+
+    public function index()
+    {
+        $cajas = Caja::orderBy('fecha_apertura')->paginate(10);
+        return view('cajas.index', compact('cajas'));
+    }
+
+    public function create()
+    {
+        return view('cajas.create');
     }
 } 
