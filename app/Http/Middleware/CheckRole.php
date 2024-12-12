@@ -7,23 +7,26 @@ use Illuminate\Http\Request;
 
 class CheckRole
 {
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!auth()->check()) {
             return redirect()->route('login');
         }
 
-        // Para el caso de admin
-        if ($role === 'Administrador') {
-            if (auth()->user()->rol !== '' && auth()->user()->rol !== 'Administrador') {
-                abort(403, 'No tienes permiso para acceder a esta sección.');
-            }
-        }
-        // Para otros roles
-        else if (auth()->user()->rol !== $role) {
-            abort(403, 'No tienes permiso para acceder a esta sección.');
+        $user = auth()->user();
+        
+        // Admin (admin@sistema) tiene acceso total
+        if ($user->rol === '') {
+            return $next($request);
         }
 
-        return $next($request);
+        // Verificar roles específicos
+        foreach ($roles as $role) {
+            if ($user->rol === $role) {
+                return $next($request);
+            }
+        }
+
+        abort(403, 'No tienes permiso para acceder a esta sección.');
     }
 } 

@@ -16,19 +16,6 @@
             <div class="p-6">
                 <!-- Información básica -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <!-- Imagen del producto -->
-                    <div>
-                        @if($producto->imagen)
-                            <img src="{{ asset('images/productos/' . $producto->imagen) }}" 
-                                 alt="{{ $producto->nombre }}"
-                                 class="w-full h-64 object-cover rounded-lg">
-                        @else
-                            <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-image text-gray-400 text-4xl"></i>
-                            </div>
-                        @endif
-                    </div>
-
                     <!-- Detalles del producto -->
                     <div class="space-y-4">
                         <div>
@@ -38,7 +25,8 @@
                                 <p><span class="font-medium">Nombre:</span> {{ $producto->nombre }}</p>
                                 <p><span class="font-medium">Categoría:</span> {{ optional($producto->categoria)->nombre ?? 'No especificada' }}</p>
                                 <p><span class="font-medium">Marca:</span> {{ optional($producto->marca)->nombre ?? 'No especificada' }}</p>
-                                <p><span class="font-medium">Color:</span> {{ $producto->color ?? 'No especificado' }}</p>
+                                <p><span class="font-medium">Tipo:</span> {{ ucfirst($producto->tipo_producto) }}</p>
+                                <p><span class="font-medium">Género:</span> {{ $producto->genero ?? 'No especificado' }}</p>
                                 <p><span class="font-medium">Estado:</span> 
                                     <span class="px-2 py-1 text-sm rounded-full 
                                         {{ $producto->estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
@@ -56,33 +44,45 @@
                                 <p><span class="font-medium">Precio de Venta:</span> ${{ number_format($producto->precio_venta, 2) }}</p>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Stock -->
+                    <!-- Stock y Talles -->
+                    <div class="space-y-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-700">Inventario</h3>
-                            <div class="mt-2 space-y-2">
-                                <p>
-                                    <span class="font-medium">Stock Actual:</span> 
-                                    <span class="{{ $producto->stock <= $producto->stock_minimo ? 'text-red-600 font-semibold' : '' }}">
-                                        {{ $producto->stock }}
-                                    </span>
-                                </p>
-                                <p><span class="font-medium">Stock Mínimo:</span> {{ $producto->stock_minimo }}</p>
+                            <h3 class="text-lg font-semibold text-gray-700">Stock por Talle</h3>
+                            <div class="mt-2 grid grid-cols-3 gap-2">
+                                @foreach($producto->talles as $talle)
+                                    <div class="border rounded p-2 text-center">
+                                        <span class="font-medium">Talle {{ $talle->talla }}</span>
+                                        <p class="{{ $talle->stock <= 0 ? 'text-red-600' : 'text-green-600' }}">
+                                            Stock: {{ $talle->stock }}
+                                        </p>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Características adicionales -->
-                <div class="border-t pt-6">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Características Adicionales</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Colores -->
                         <div>
-                            <p><span class="font-medium">Talla:</span> {{ $producto->talla ?? 'No especificada' }}</p>
-                            <p><span class="font-medium">Material:</span> {{ $producto->material ?? 'No especificado' }}</p>
+                            <h3 class="text-lg font-semibold text-gray-700">Colores Disponibles</h3>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach($producto->colores as $color)
+                                    <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">
+                                        {{ $color->color }}
+                                    </span>
+                                @endforeach
+                            </div>
                         </div>
+
+                        <!-- Stock Total -->
                         <div>
-                            <p><span class="font-medium">Género:</span> {{ $producto->genero ?? 'No especificado' }}</p>
+                            <h3 class="text-lg font-semibold text-gray-700">Stock Total</h3>
+                            <div class="mt-2">
+                                <p class="{{ $producto->stock <= $producto->stock_minimo ? 'text-red-600' : 'text-green-600' }} font-bold">
+                                    {{ $producto->stock }} unidades
+                                </p>
+                                <p class="text-sm text-gray-600">Stock mínimo: {{ $producto->stock_minimo }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>

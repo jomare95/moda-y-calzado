@@ -258,7 +258,9 @@
                             
                             @foreach($coloresCalzado as $nombre => $codigo)
                                 <div class="flex items-center border rounded p-3">
-                                    <input type="checkbox" name="colores[]" value="{{ $nombre }}" 
+                                    <input type="checkbox" 
+                                           name="colores_calzado[]" 
+                                           value="{{ $nombre }}" 
                                            id="color_{{ $nombre }}"
                                            class="rounded border-gray-300"
                                            {{ in_array($nombre, $coloresActuales) ? 'checked' : '' }}>

@@ -1,3 +1,8 @@
+@php
+    $user = Auth::user(); // Obtener el usuario autenticado
+    $isAdmin = $user && $user->rol === 'Administrador'; // Verificar si es administrador
+@endphp
+
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-20">
@@ -32,19 +37,22 @@
                                     <i class="fas fa-list mr-3 text-gray-400 group-hover:text-indigo-500"></i>
                                     Listado de Productos
                                 </a>
-                                <a href="{{ route('productos.create') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
-                                    <i class="fas fa-plus-circle mr-3 text-gray-400 group-hover:text-indigo-500"></i>
-                                    Nuevo Producto
-                                </a>
-                                <a href="{{ route('categorias.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
-                                    <i class="fas fa-tags mr-3 text-gray-400 group-hover:text-indigo-500"></i>
-                                    Categorías
-                                </a>
+                                @if($isAdmin) <!-- Solo para administradores -->
+                                    <a href="{{ route('productos.create') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                                        <i class="fas fa-plus-circle mr-3 text-gray-400 group-hover:text-indigo-500"></i>
+                                        Nuevo Producto
+                                    </a>
+                                    <a href="{{ route('categorias.index') }}" class="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                                        <i class="fas fa-tags mr-3 text-gray-400 group-hover:text-indigo-500"></i>
+                                        Categorías
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>
 
-                    <!-- Compras -->
+                    <!-- Compras (solo para administradores) -->
+                    @if($isAdmin)
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button @click="open = !open" class="inline-flex items-center px-4 py-2 border-b-2 text-base font-medium leading-5 focus:outline-none transition duration-150 ease-in-out {{ request()->routeIs('compras.*') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             <i class="fas fa-shopping-bag mr-2"></i>
@@ -70,6 +78,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     <!-- Ventas -->
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">

@@ -5,11 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Venta;
 use App\Models\Compra;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
     public function reportes(Request $request)
     {
+        // Verificar si el usuario autenticado es un administrador
+        $user = Auth::user();
+        if ($user->rol !== 'Administrador') {
+            return redirect()->route('dashboard')->with('error', 'No tienes acceso a esta sección.');
+        }
+
         try {
             // Obtener todas las ventas, incluyendo el estado
             $ventas = Venta::with(['cliente'])->orderBy('fecha_venta', 'desc')->get();

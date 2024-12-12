@@ -119,15 +119,27 @@ class ProductoController extends Controller
             $stockTotal = 0;
 
             // Para calzado
-            if ($request->tipo_producto === 'calzado' && $request->has('talles_calzado')) {
-                foreach ($request->talles_calzado as $talle) {
-                    $stock = isset($request->stock_talle_calzado[$talle]) ? (int)$request->stock_talle_calzado[$talle] : 0;
-                    if ($stock > 0) {
-                        $producto->talles()->create([
-                            'talla' => $talle,
-                            'stock' => $stock
+            if ($request->tipo_producto === 'calzado') {
+                // Guardar talles
+                if ($request->has('talles_calzado')) {
+                    foreach ($request->talles_calzado as $talle) {
+                        $stock = isset($request->stock_talle_calzado[$talle]) ? (int)$request->stock_talle_calzado[$talle] : 0;
+                        if ($stock > 0) {
+                            $producto->talles()->create([
+                                'talla' => $talle,
+                                'stock' => $stock
+                            ]);
+                            $stockTotal += $stock;
+                        }
+                    }
+                }
+
+                // Guardar colores
+                if ($request->has('colores_calzado')) { // Asegúrate de que este nombre coincida con el formulario
+                    foreach ($request->colores_calzado as $color) {
+                        $producto->colores()->create([
+                            'color' => $color
                         ]);
-                        $stockTotal += $stock;
                     }
                 }
             }
@@ -178,17 +190,13 @@ class ProductoController extends Controller
         }
     }
 
-    public function edit(Producto $producto)
+    public function edit($id)
     {
-        try {
-            $categorias = Categoria::where('estado', 1)->orderBy('nombre')->get();
-            $marcas = Marca::where('estado', 1)->orderBy('nombre')->get();
-            
-            return view('productos.edit', compact('producto', 'categorias', 'marcas'));
-        } catch (\Exception $e) {
-            \Log::error('Error en edición de producto: ' . $e->getMessage());
-            return back()->with('error', 'Error al cargar el formulario de edición');
-        }
+        $producto = Producto::with(['talles', 'colores'])->findOrFail($id);
+        $categorias = Categoria::all();
+        $marcas = Marca::all();
+
+        return view('productos.edit', compact('producto', 'categorias', 'marcas'));
     }
 
     public function update(Request $request, Producto $producto)
