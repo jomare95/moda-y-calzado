@@ -56,6 +56,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Producto</label>
+                        <input type="text" 
+                               id="buscar_producto" 
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 mb-2"
+                               placeholder="Buscar producto...">
                         <select class="producto-select form-select w-full" onchange="cargarDetallesProducto(this)">
                             <option value="">Seleccione un producto</option>
                             @foreach($productos as $producto)
@@ -499,6 +503,18 @@ document.addEventListener('DOMContentLoaded', function() {
             cargarDetallesProducto(this);
         });
     }
+
+    // Event listener para el buscador
+    document.getElementById('buscar_producto').addEventListener('input', function(e) {
+        const busqueda = e.target.value.toLowerCase();
+        const select = document.querySelector('.producto-select');
+        const opciones = select.querySelectorAll('option');
+        
+        opciones.forEach(opcion => {
+            const texto = opcion.textContent.toLowerCase();
+            opcion.style.display = texto.includes(busqueda) ? '' : 'none';
+        });
+    });
 });
 </script>
 @endpush

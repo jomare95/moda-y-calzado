@@ -240,6 +240,36 @@
                             </div>
                         @endforeach
                     </div>
+
+                    <!-- Colores para Calzado -->
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-700 mb-4">Colores disponibles</h3>
+                        <div class="grid grid-cols-4 gap-4">
+                            @php
+                                $coloresCalzado = [
+                                    'Negro' => '#000000',
+                                    'Marrón' => '#8B4513',
+                                    'Blanco' => '#FFFFFF',
+                                    'Gris' => '#808080',
+                                    'Beige' => '#F5F5DC'
+                                ];
+                                $coloresActuales = $producto->colores->pluck('color')->toArray();
+                            @endphp
+                            
+                            @foreach($coloresCalzado as $nombre => $codigo)
+                                <div class="flex items-center border rounded p-3">
+                                    <input type="checkbox" name="colores[]" value="{{ $nombre }}" 
+                                           id="color_{{ $nombre }}"
+                                           class="rounded border-gray-300"
+                                           {{ in_array($nombre, $coloresActuales) ? 'checked' : '' }}>
+                                    <label for="color_{{ $nombre }}" class="flex items-center ml-2">
+                                        <span class="w-4 h-4 inline-block mr-2 border" style="background-color: {{ $codigo }};"></span>
+                                        {{ $nombre }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div id="seccion_ropa" style="{{ $producto->tipo_producto == 'ropa' ? '' : 'display: none' }}" class="mt-4">
@@ -313,4 +343,25 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('tipo_producto').addEventListener('change', function() {
+        const tipoProducto = this.value;
+        const seccionCalzado = document.getElementById('seccion_calzado');
+        const seccionRopa = document.getElementById('seccion_ropa');
+        
+        if (tipoProducto === 'calzado') {
+            seccionCalzado.style.display = 'block';
+            seccionRopa.style.display = 'none';
+        } else if (tipoProducto === 'ropa') {
+            seccionCalzado.style.display = 'none';
+            seccionRopa.style.display = 'block';
+        }
+    });
+
+    // Ejecutar al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('tipo_producto').dispatchEvent(new Event('change'));
+    });
+</script>
 @endsection 

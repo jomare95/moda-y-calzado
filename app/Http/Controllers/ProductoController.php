@@ -84,11 +84,8 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
-        // Log para depuración
-        \Log::info('Datos recibidos:', $request->all());
-
         try {
-            // Validación
+            // Validación básica
             $request->validate([
                 'codigo' => 'required|unique:productos,codigo',
                 'nombre' => 'required',
@@ -103,10 +100,11 @@ class ProductoController extends Controller
 
             DB::beginTransaction();
 
-            // Crear el producto
+            // Crear el producto base
             $producto = Producto::create([
                 'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
                 'id_categoria' => $request->id_categoria,
                 'id_marca' => $request->id_marca,
                 'id_proveedor' => $request->id_proveedor,
@@ -114,35 +112,58 @@ class ProductoController extends Controller
                 'precio_compra' => $request->precio_compra,
                 'precio_venta' => $request->precio_venta,
                 'stock_minimo' => $request->stock_minimo,
+                'stock' => 0,
                 'estado' => 1
             ]);
 
-            // Inserción de talles
+            $stockTotal = 0;
+
+            // Para calzado
             if ($request->tipo_producto === 'calzado' && $request->has('talles_calzado')) {
                 foreach ($request->talles_calzado as $talle) {
                     $stock = isset($request->stock_talle_calzado[$talle]) ? (int)$request->stock_talle_calzado[$talle] : 0;
                     if ($stock > 0) {
-                        DB::table('producto_talles')->insert([
-                            'id_producto' => $producto->id_producto,
+                        $producto->talles()->create([
                             'talla' => $talle,
                             'stock' => $stock
+                        ]);
+                        $stockTotal += $stock;
+                    }
+                }
+            }
+
+            // Para ropa
+            if ($request->tipo_producto === 'ropa') {
+                // Guardar talles y stock
+                if ($request->has('talles_ropa')) {
+                    foreach ($request->talles_ropa as $talle) {
+                        $stock = isset($request->stock_talle_ropa[$talle]) ? (int)$request->stock_talle_ropa[$talle] : 0;
+                        if ($stock > 0) {
+                            $producto->talles()->create([
+                                'talla' => $talle,
+                                'stock' => $stock
+                            ]);
+                            $stockTotal += $stock;
+                        }
+                    }
+                }
+
+                // Guardar colores
+                if ($request->has('colores_ropa')) {
+                    foreach ($request->colores_ropa as $color) {
+                        $producto->colores()->create([
+                            'color' => $color
                         ]);
                     }
                 }
             }
 
-            // Inserción de colores
-            if ($request->tipo_producto === 'calzado' && $request->has('colores')) {
-                foreach ($request->colores as $color) {
-                    DB::table('producto_colores')->insert([
-                        'id_producto' => $producto->id_producto,
-                        'color' => $color
-                    ]);
-                }
-            }
+            // Actualizar stock total del producto
+            $producto->update(['stock' => $stockTotal]);
 
             DB::commit();
-            return redirect()->route('productos.index')->with('success', '¡Producto guardado exitosamente!');
+            return redirect()->route('productos.index')
+                ->with('success', '¡Producto guardado exitosamente!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -151,7 +172,9 @@ class ProductoController extends Controller
                 'linea' => $e->getLine(),
                 'archivo' => $e->getFile()
             ]);
-            return back()->withInput()->with('error', 'Error al crear el producto: ' . $e->getMessage());
+            return back()
+                ->withInput()
+                ->with('error', 'Error al crear el producto: ' . $e->getMessage());
         }
     }
 
